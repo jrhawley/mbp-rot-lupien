@@ -1,0 +1,50 @@
+.cd-top,
+.cd-bottom {
+    display: inline-block;
+    position: fixed;
+    height: 40px;
+    width:  40px;
+    right:  30px;
+    bottom: 30px;
+    padding: 10px 14px;
+    background-color: rgba(169, 68, 66, 1);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 1);
+    -webkit-box-shadow: 0 0 rgba(0, 0, 0, 1) rgba(0, 0, 0, 0.05);
+       -moz-box-shadow: 0 0 rgba(0, 0, 0, 1) rgba(0, 0, 0, 0.05);
+        -ms-box-shadow: 0 0 rgba(0, 0, 0, 1) rgba(0, 0, 0, 0.05);
+            box-shadow: 0 0 rgba(0, 0, 0, 1) rgba(0, 0, 0, 0.05);
+
+    /* image replacement properties */
+    overflow: hidden;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    -webkit-transition: opacity .3s 0s, visibility 0s .3s;
+       -moz-transition: opacity .3s 0s, visibility 0s .3s;
+         -o-transition: opacity .3s 0s, visibility 0s .3s;
+            transition: opacity .3s 0s, visibility 0s .3s;
+}
+.cd-top {
+    bottom: 80px;
+}
+
+.cd-top.cd-is-visible,
+.cd-bottom.cd-is-visible {
+    /* the button becomes visible */
+    visibility: visible;
+    opacity: 0.8;
+    opacity: .5;
+}
+.cd-top.cd-is-visible:hover,
+.cd-bottom.cd-is-visible:hover {
+        background-color: rgba(169, 68, 66, 1);
+        opacity: 1;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 1);
+    }
+.no-touch .cd-top:hover,
+.no-touch .cd-bottom:hover {
+    background-color: rgba(169, 68, 66, 1);
+    opacity: 1;
+}
