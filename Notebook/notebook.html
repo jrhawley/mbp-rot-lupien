@@ -47,7 +47,43 @@
                 <p><abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.</p>
                 <p>This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.</p>
                 <p>Sven has recently published a paper on using this idea in order to find an <abbr title="set of regulatory elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-cell-type correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase hypersensitivity sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to what the 3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="background mutation rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.</p>
-                <p>Sven's paper used 98 breast cancer samples, and I'm going to try and replicate this analysis on a ~560 sample breast cancer dataset from ICGC.</p>
+                <p>Sven's paper used 98 <abbr title="breast cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.</p>
+            </section>
+            
+            <section>
+                <h3>Setup</h3>
+                <p>Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. The lab doesn't use version control (!!!!!) so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>)</p>
+                <table>
+                    <tr>
+                        <th>Item</th>
+                        <th>Location</th>
+                    </tr>
+                    <tr>
+                        <td>Original C3D</td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/C3D</code></td>
+                    </tr>
+                    <tr>
+                        <td>Original MuSE</td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/MUSE</code></td>
+                    </tr>
+                    <tr>
+                        <td>Original Somatic Mutations (Sanger)</td>
+                        <td><code>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016</code></td>
+                    </tr>
+                    <tr>
+                        <td>BCa BedGraphs</td>
+                        <td><code>$LHOME/Data/UW_DHS_BG</code></td>
+                    </tr>
+                    <tr>
+                        <td>Genes List for Promoters</td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</code></td>
+                    </tr>
+                    <tr>
+                        <td>MCF-7 Cell Lines</td>
+                        <td><code>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</code></td>
+                    </tr>
+                    <caption>Table 1: Original data locations. Small enough files of import are in <code>$LHOME/Data</code>, and large samples were left in their original locations.</caption>
+                </table>
             </section>
         </section>
     </article>
