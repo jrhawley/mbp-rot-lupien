@@ -34,6 +34,14 @@
                 <td></td>
                 <td><a href="#2016-10_project">Project</a></td>
             </tr>
+            <tr>
+                <td></td>
+                <td><a href="#2016-10_setup">Setup</a></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><a href="#2016-10_c3d-results">C3D Results</a></td>
+            </tr>
         </table>
     </summary>
     <hr>
@@ -50,29 +58,33 @@
                 <p>Sven's paper used 98 <abbr title="breast cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.</p>
             </section>
             
-            <section>
+            <section id="2016-10_setup">
                 <h3>Setup</h3>
-                <p>Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. The lab doesn't use version control (!!!!!) so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>)</p>
-                <table>
+                <p>Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>)</p>
+                <table style="width: 100%;">
                     <tr>
                         <th>Item</th>
                         <th>Location</th>
                     </tr>
                     <tr>
                         <td>Original C3D</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/C3D</code></td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</code></td>
                     </tr>
                     <tr>
                         <td>Original MuSE</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/MUSE</code></td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</code></td>
                     </tr>
                     <tr>
                         <td>Original Somatic Mutations (Sanger)</td>
-                        <td><code>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016</code></td>
+                        <td><code>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</code></td>
                     </tr>
                     <tr>
-                        <td>BCa BedGraphs</td>
-                        <td><code>$LHOME/Data/UW_DHS_BG</code></td>
+                        <td>BCa DHS BigWigs</td>
+                        <td><code>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</code></td>
+                    </tr>
+                    <tr>
+                        <td>BCa DHS BedGraphs (converted from BigWig)</td>
+                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</code></td>
                     </tr>
                     <tr>
                         <td>Genes List for Promoters</td>
@@ -84,6 +96,22 @@
                     </tr>
                     <caption>Table 1: Original data locations. Small enough files of import are in <code>$LHOME/Data</code>, and large samples were left in their original locations.</caption>
                 </table>
+
+                <p>I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:</p>
+                <pre><code>
+sh make_anchors_from_genes.sh genes.list 2500 500 promoter_anchors.bed
+sort -k1,1 -k2,2n promoter_anchors.bed > promoter_anchors.sorted.bed                # sorted
+bedtools merge -i promoter_anchors.sorted.bed > promoter_anchors.sorted.merged.bed  # merge to reduce features
+                </code></pre>
+
+                <p>Then, after setting up the configuration file <a href="files/79_BCa_samples.cfg">79_BCa_samples.cfg</a>, I ran C3D:</p>
+                <pre><code>
+sh c3d_wrapper.sh 79_BCa_samples.cfg
+                </code></pre>
+            </section>
+
+            <section id="2016-10_c3d-results">
+                <h3>C3D Results</h3>
             </section>
         </section>
     </article>
