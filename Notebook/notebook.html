@@ -32,7 +32,7 @@
             </tr>
             <tr>
                 <td></td>
-                <td><a href="#2016-10_Section">Section</a></td>
+                <td><a href="#2016-10_project">Project</a></td>
             </tr>
         </table>
     </summary>
@@ -42,8 +42,12 @@
         <section id="2016-10">
             <h2>October</h2>
 
-            <section id="2016-10_section">
-                <h3>Section</h3>
+            <section id="2016-10_project">
+                <h3>Project</h3>
+                <p><abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.</p>
+                <p>This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.</p>
+                <p>Sven has recently published a paper on using this idea in order to find an <abbr title="set of regulatory elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-cell-type correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase hypersensitivity sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to what the 3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="background mutation rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.</p>
+                <p>Sven's paper used 98 breast cancer samples, and I'm going to try and replicate this analysis on a ~560 sample breast cancer dataset from ICGC.</p>
             </section>
         </section>
     </article>
