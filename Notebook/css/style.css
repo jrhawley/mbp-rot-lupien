@@ -497,3 +497,7 @@ table caption {
     caption-side: bottom;
     white-space: nowrap;
 }
+
+abbr {
+    text-decoration: underline dotted;
+}
