@@ -501,3 +501,8 @@ table caption {
 abbr {
     text-decoration: underline dotted;
 }
+
+strong.danger {
+    color: #d9534f;
+    text-decoration: underline;
+}
