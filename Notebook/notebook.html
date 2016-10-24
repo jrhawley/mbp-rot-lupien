@@ -101,7 +101,7 @@
                 <pre><code>
 sh make_anchors_from_genes.sh genes.list 2500 500 promoter_anchors.bed
 sort -k1,1 -k2,2n promoter_anchors.bed > promoter_anchors.sorted.bed                # sorted
-bedtools merge -i promoter_anchors.sorted.bed > promoter_anchors.sorted.merged.bed  # merge to reduce features
+bedtools merge -i promoter_anchors.sorted.bed > promoter_anchors.merged.sorted.bed  # merge to reduce features
                 </code></pre>
 
                 <p>Then, after setting up the configuration file <a href="files/79_BCa_samples.cfg">79_BCa_samples.cfg</a>, I ran C3D:</p>
@@ -113,7 +113,13 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
             <section id="2016-10_c3d-results">
                 <h3>C3D Results</h3>
 
-                <p>Its initial run completed and produced BED files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning <code>c3d.R</code> with this fixed.</p>
+                <p>Its initial run completed and produced <abbr title="browser extensible data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.</p>
+
+                <h4>Mistakes were made</h4>
+                <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
+                <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.</p>
+                <p>To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.</p>
+                <p>It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.</p>
             </section>
         </section>
     </article>
