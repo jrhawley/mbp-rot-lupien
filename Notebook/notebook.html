@@ -136,7 +136,7 @@ cat results_*.formatted.txt >> results_all.txt
             <section id="2016-10_MuSE">
                 <h3>MuSE</h3>
 
-                <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
+                <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. Turns out the headers are all tab separated, but the data is not. I need to clean that up before I run this. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
                 <pre><code>
 zcat simple_somatic_mutation.BRCA-EU.tsv.gz | awk -v OFS='\t' '{$9 = "chr"$9; print $9, $10, $11, $16, $17}' > mutations.bed
                 </code></pre>
