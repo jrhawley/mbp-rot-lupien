@@ -42,6 +42,10 @@
                 <td></td>
                 <td><a href="#2016-10_c3d-results">C3D Results</a></td>
             </tr>
+            <tr>
+                <td></td>
+                <td><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></td>
+            </tr>
         </table>
     </summary>
     <hr>
@@ -120,7 +124,53 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
                 <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.</p>
                 <p>To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.</p>
                 <p>It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.</p>
+                <p>Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow (2016-10-26).</p>
+
+                <p>This finally worked. I copied all the resulting files into <code>20161026_C3D</code>, and formatted the files for input to MuSE via (replace <code>$i</code> with each number):</p>
+                <pre><code>
+cat results_$i.txt | awk -v OFS='\t' '{if (NR!=1) {print $1, $4, $7, $7, $8}}' > results_$i.formatted.txt
+cat results_*.formatted.txt >> results_all.txt
+                </code></pre>
             </section>
+
+            <section id="2016-10_MuSE">
+                <h3>MuSE</h3>
+
+                <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
+                <pre><code>
+zcat simple_somatic_mutation.BRCA-EU.tsv.gz | awk -v OFS='\t' '{$9 = "chr"$9; print $9, $10, $11, $16, $17}' > mutations.bed
+                </code></pre>
+            </section>
+
+            <section id="2016-10_c3d-recommendations">
+                <h3>C3D Recommendations</h3>
+
+                <p>C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:</p>
+                <ul>
+                    <li>No config file</li>
+                    <ul>
+                        <li>Making config files and running scripts can get messy, since it requires writing to a config file every time you want to run the script</li>
+                        <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
+                    </ul>
+                    <li>Using getopt/standard argparsing</li>
+                    <ul>
+                        <li>Will make it easier to parse arguments without the need for a config file</li>
+                        <li>Lessen chance of making mistakes when running</li>
+                    </ul>
+                    <li>Rewrite in Python or Perl</li>
+                    <ul>
+                        <li>Bash is useful, but not as readable or supported for many of these things</li>
+                        <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
+                        <li>Calculations, command line, and parallelization are easily supported in these languages</li>
+                    </ul>
+                    <li>Parallelization</li>
+                    <ul>
+                        <li>These scripts take a long time to run</li>
+                        <li>Using perl or python packages to parallelize computations will significantly speed up processing time</li>
+                    </ul>
+                </ul>
+            </section>
+
         </section>
     </article>
 
