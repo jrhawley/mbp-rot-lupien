@@ -11,6 +11,7 @@
         MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]} });
     </script>
     <script type="text/javascript" async src="node_modules/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script type="text/javascript" src="node_modules/clipboard/dist/clipboard.min.js"></script>
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/citetag.js"></script>
@@ -136,9 +137,20 @@ cat results_*.formatted.txt >> results_all.txt
             <section id="2016-10_MuSE">
                 <h3>MuSE</h3>
 
-                <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. Turns out the headers are all tab separated, but the data is not. I need to clean that up before I run this. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
+                <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
                 <pre><code>
-zcat simple_somatic_mutation.BRCA-EU.tsv.gz | awk -v OFS='\t' '{$9 = "chr"$9; print $9, $10, $11, $16, $17}' > mutations.bed
+# collect the appropriate columns, prepend "chr" to chromosome column
+zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; print $9, $10, $11, $16, $17}' > simple_somatic_mutation.open.BRCA-EU.bed
+# remove the first line
+awk '{if (NR != 1) {print}}' simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.formatted.bed
+# sort BED file
+sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.formatted.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
+                </code></pre>
+
+                <p>I've then run MuSE as follows:</p>
+                    <!--<button class="btn" data-clipboard-snippet=""><img class="clippy" width="13" src="assets/clippy.svg" alt="Copy to clipboard"></button>-->
+                <pre><code>
+qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
                 </code></pre>
             </section>
 
@@ -167,6 +179,10 @@ zcat simple_somatic_mutation.BRCA-EU.tsv.gz | awk -v OFS='\t' '{$9 = "chr"$9; pr
                     <ul>
                         <li>These scripts take a long time to run</li>
                         <li>Using perl or python packages to parallelize computations will significantly speed up processing time</li>
+                    </ul>
+                    <li>Check files and folders before executing</li>
+                    <ul>
+                        <li>Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed</li>
                     </ul>
                 </ul>
             </section>
