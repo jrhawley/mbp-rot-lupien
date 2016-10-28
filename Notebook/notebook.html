@@ -160,6 +160,29 @@ qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutati
 sort -u -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
                 </code></pre>
+
+                <p>I'm getting a lot of errors running this. I'm still getting output, but I don't know what these errors entail, so I want to track them down before I do a complete run again, since they took a few hours (3 for the non-unique, and 4.5 for the unique mutation files). I'm getting errors like:</p>
+                <pre><code>
+Argument "237723-237851" isn't numeric in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
+Use of uninitialized value in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
+Argument "521469-521617" isn't numeric in subtraction (-) at MuSE-1.6.pl line 341, <$inputIFC> line 1.
+Use of uninitialized value in addition (+) at MuSE-1.6.pl line 342, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 414, <$inputIFC> line 1.
+Use of uninitialized value in numeric gt (>) at MuSE-1.6.pl line 430, <$inputIFC> line 1.
+Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIFC> line 1.
+                </code></pre>
+                <p>I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.</p>
+                <p>I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.</p>
             </section>
 
             <section id="2016-10_c3d-recommendations">
@@ -191,6 +214,12 @@ qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutati
                     <li>Check files and folders before executing</li>
                     <ul>
                         <li>Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed</li>
+                    </ul>
+                    <li>Comments</li>
+                    <ul>
+                        <li>Please put comments all over the place in the code</li>
+                        <li>Takes a lot of time to understand what's going on without them</li>
+                        <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
                     </ul>
                 </ul>
             </section>
