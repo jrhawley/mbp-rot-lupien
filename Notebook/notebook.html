@@ -140,7 +140,7 @@ cat results_*.formatted.txt >> results_all.txt
                 <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
                 <pre><code>
 # collect the appropriate columns, prepend "chr" to chromosome column, remove headers
-zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; if (NR != 1) {print $9, $10, $11, $16, $17}}' > simple_somatic_mutation.open.BRCA-EU.bed
+zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; if (NR != 1) {print $9, $10, $11, $7, $16, $17}}' > simple_somatic_mutation.open.BRCA-EU.bed
 # sort BED file
 sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
                 </code></pre>
