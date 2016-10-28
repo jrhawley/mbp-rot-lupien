@@ -45,6 +45,10 @@
             </tr>
             <tr>
                 <td></td>
+                <td><a href="#2016-10_MuSE">MuSE</a></td>
+            </tr>
+            <tr>
+                <td></td>
                 <td><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></td>
             </tr>
         </table>
@@ -149,6 +153,12 @@ sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_muta
                     <!--<button class="btn" data-clipboard-snippet=""><img class="clippy" width="13" src="assets/clippy.svg" alt="Copy to clipboard"></button>-->
                 <pre><code>
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
+                </code></pre>
+
+                <p>To filter out duplicate mutations, sort with the unique option:</p>
+                <pre><code>
+sort -u -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed
+qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
                 </code></pre>
             </section>
 
