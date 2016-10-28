@@ -59,8 +59,8 @@
                 <h3>Project</h3>
                 <p><abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.</p>
                 <p>This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.</p>
-                <p>Sven has recently published a paper on using this idea in order to find an <abbr title="set of regulatory elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-cell-type correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase hypersensitivity sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to what the 3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="background mutation rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.</p>
-                <p>Sven's paper used 98 <abbr title="breast cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.</p>
+                <p>Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to what the 3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.</p>
+                <p>Sven's paper used 98 <abbr title="Breast Cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.</p>
             </section>
             
             <section id="2016-10_setup">
@@ -118,7 +118,7 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
             <section id="2016-10_c3d-results">
                 <h3>C3D Results</h3>
 
-                <p>Its initial run completed and produced <abbr title="browser extensible data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.</p>
+                <p>Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.</p>
 
                 <h4>Mistakes were made</h4>
                 <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
@@ -139,12 +139,10 @@ cat results_*.formatted.txt >> results_all.txt
 
                 <p>Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:</p>
                 <pre><code>
-# collect the appropriate columns, prepend "chr" to chromosome column
-zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; print $9, $10, $11, $16, $17}' > simple_somatic_mutation.open.BRCA-EU.bed
-# remove the first line
-awk '{if (NR != 1) {print}}' simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.formatted.bed
+# collect the appropriate columns, prepend "chr" to chromosome column, remove headers
+zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; if (NR != 1) {print $9, $10, $11, $16, $17}}' > simple_somatic_mutation.open.BRCA-EU.bed
 # sort BED file
-sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.formatted.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
+sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
                 </code></pre>
 
                 <p>I've then run MuSE as follows:</p>
