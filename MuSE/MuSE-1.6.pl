@@ -150,17 +150,14 @@ my %mutations=(); # mutations by chromosome / Type / ID???
 # Sorted mutation file
 my $inputMUT;
 my $inputMUTfile=$ARGV[0];
-open($inputMUT, "<", $inputMUTfile) or die "Could not open $inputMUTfile!\n";
 
 #IFC output file
 my $inputIFC;
 my $inputIFCfile=$ARGV[1];
-open($inputIFC, "<", $inputIFCfile) or die "Could not open $inputIFCfile!\n";
 
 #Bed file used for the IFC analysis -- will use genomewide mutation rate if no mutations within selected window
 my $inputBED;
 my $inputBEDfile=$ARGV[2];
-open($inputBED, "<", $inputBEDfile) or die "Could not open $inputBEDfile!\n";
 
 # +/- window size -- Must be equal or smaller than the IFC window size used
 my $window=$ARGV[3];
@@ -171,12 +168,10 @@ my $thres=$ARGV[4];
 my $output;
 my $append="MUSE6";
 my $outputfile=join(".", $inputIFCfile, $window, $thres, $append);
-open($output, ">", $outputfile) or die "Could not open $outputfile\n";
 
 my $mutout;
 my $append2="MUT6";
 my $mutoutfile=join(".", $inputIFCfile, $window, $thres, $append2);
-open($mutout, ">", $mutoutfile) or die "Could not open $mutoutfile\n";
 
 my @mutations=();
 my %landmarks=();
@@ -185,6 +180,8 @@ my @starts=();
 
 my $n=-1; # array position
 
+print("Reading mutation file\n");
+open($inputMUT, "<", $inputMUTfile) or die "Could not open $inputMUTfile!\n";
 while(<$inputMUT>){
     chomp();
 
@@ -226,8 +223,7 @@ for my $mutation (@mutations){
         $mutP{$mut[3]}+=1;
     }
 }
-
-print("Done InputMUT reading");
+print("Finished reading\n");
 
 
 my %mgene=();
@@ -250,65 +246,68 @@ my %wgbmr=(
 
 my $wgdist=0;
 
+print("Reading BED file\n");
+open($inputBED, "<", $inputBEDfile) or die "Could not open $inputBEDfile!\n";
 #_EXPLANATION_
-while(<$inputBED>){
-    chomp();
-    my @line=split(/\t/);
-    my $dist=$line[2] - $line[1];
-    $wgdist+= $dist;
+# while(<$inputBED>){
+#     chomp();
+#     my @line=split(/\t/);
+#     my $dist=$line[2] - $line[1];
+#     $wgdist+= $dist;
 
-    my $start=0;
-    my $fs=0;
-    my $fn=0;
+#     my $start=0;
+#     my $fs=0;
+#     my $fn=0;
 
-    for(my $i=0; $i<=$#chroms; $i++){
-        if($line[0] eq $chroms[$i]){
-            if($i != $#chroms){
-                $fs=$starts[$i];
-                $fn=$starts[$i + 1];
-            }else{
-                $fs=$starts[$i];
-                $fn=$#mutations;
-            }
-        }
-    }
+#     for(my $i=0; $i<=$#chroms; $i++){
+#         if($line[0] eq $chroms[$i]){
+#             if($i != $#chroms){
+#                 $fs=$starts[$i];
+#                 $fn=$starts[$i + 1];
+#             }else{
+#                 $fs=$starts[$i];
+#                 $fn=$#mutations;
+#             }
+#         }
+#     }
 
-    my $d = 0;
-    my $t = 0;
-    my $s = 10;
-    while( $d < $s ){
-        my @ps=split(/\t/,$mutations[$fs]);
-        my @pn=split(/\t/,$mutations[$fn]);
+#     my $d = 0;
+#     my $t = 0;
+#     my $s = 10;
+#     while( $d < $s ){
+#         my @ps=split(/\t/,$mutations[$fs]);
+#         my @pn=split(/\t/,$mutations[$fn]);
 
-        $t=int( (($fn + $fs)/ 2 )+0.5);    
-        my @pt=split(/\t/,$mutations[$t]);
+#         $t=int( (($fn + $fs)/ 2 )+0.5);    
+#         my @pt=split(/\t/,$mutations[$t]);
 
-        if($line[1] > $pt[1]){
-            $fs=$t;
-        }elsif($line[2] < $pt[1]){
-            $fn=$t;
-        }
-        $d+=1;     
-        #   print "$fs\t$fn\n@ps\n@pn\n";
-    }
+#         if($line[1] > $pt[1]){
+#             $fs=$t;
+#         }elsif($line[2] < $pt[1]){
+#             $fn=$t;
+#         }
+#         $d+=1;     
+#         #   print "$fs\t$fn\n@ps\n@pn\n";
+#     }
 
-    for (my $i=$fs; $i <= $#mutations; $i ++){
-        my @mut=split(/\t/,$mutations[$i]);
-        my $type=assign_type($mut[4],$mut[5]);
-        if($mut[1] >= $line[1] && $mut[1] <= $line[2]){
-            $wgbmr{$type}+=1;
-        }elsif( $mut[1] > $line[2] ){
-            last; # if sorted array
-        }elsif( $mut[1] < $line[1] ){
-            next;
-        }
-    }
-}
+#     for (my $i=$fs; $i <= $#mutations; $i ++){
+#         my @mut=split(/\t/,$mutations[$i]);
+#         my $type=assign_type($mut[4],$mut[5]);
+#         if($mut[1] >= $line[1] && $mut[1] <= $line[2]){
+#             $wgbmr{$type}+=1;
+#         }elsif( $mut[1] > $line[2] ){
+#             last; # if sorted array
+#         }elsif( $mut[1] < $line[1] ){
+#             next;
+#         }
+#     }
+# }
 close($inputBED);
+print("Finished reading\n");
 
-for my $type (keys %wgbmr){
-    print "$type $wgbmr{$type} $wgdist\n";
-}
+# for my $type (keys %wgbmr){
+#     print "$type $wgbmr{$type} $wgdist\n";
+# }
 
 my %nbmr=(); #mut within bmr regions
 my %cbmr=(); #bmr coverage
@@ -317,11 +316,14 @@ my %cmut=(); #test region coverage
 my %tmut=();
 my %nid=();
 
+print("Reading C3D output\n");
+open($inputIFC, "<", $inputIFCfile) or die "Could not open $inputIFCfile!\n";
+open($mutout, ">", $mutoutfile) or die "Could not open $mutoutfile\n";
 #_EXPLANATION_
 while(<$inputIFC>){
     chomp();
     #_COMMENT_: why splitting by space and not \t?
-    my @line=split(/ /);
+    my @line=split(/\t/);
 
     if($line[0] eq "COORD_1"){
         next;
@@ -330,45 +332,46 @@ while(<$inputIFC>){
         next;
     }
 
-    my @prox=split(/:/,$line[0]);
-    my @dist=split(/:/,$line[1]);
+    my @prox=split(/[:-]/,$line[0]);
+    my @dist=split(/[:-]/,$line[1]);
 
-    my $gene=join(":",$line[0],$line[4]); 
+    my $gene=join(":",$line[0],$line[4]);
+
     my $cov=$dist[2] - $dist[1];  
 
     my $lwind=$prox[1] - $window;
     my $uwind=$prox[2] + $window;   
-    #print $mutout "@dist\t$line[2]\n";
+    print $mutout "@dist\t$line[2]\n";
 
     if(!exists $SiMES{$gene}){
-    $SiMES{$gene}=0;
+        $SiMES{$gene}=0;
 
-    my %mtypes=(
-        ACTG => 0,
-        AGTC => 0,
-        ATTA => 0,
-        CAGT => 0,
-        CGGC => 0,
-        CTGA => 0,
-        OTHER => 0,
-    );
-    my %btypes=(
-        ACTG => 0,
-        AGTC => 0,
-        ATTA => 0,
-        CAGT => 0,
-        CGGC => 0,
-        CTGA => 0,
-        OTHER => 0,
-    );
-    my $btype=\%btypes;
-    my $mtype=\%mtypes;
-    $nbmr{$gene}=$btype;
-    $nmut{$gene}=$mtype; 
+        my %mtypes=(
+            ACTG => 0,
+            AGTC => 0,
+            ATTA => 0,
+            CAGT => 0,
+            CGGC => 0,
+            CTGA => 0,
+            OTHER => 0,
+        );
+        my %btypes=(
+            ACTG => 0,
+            AGTC => 0,
+            ATTA => 0,
+            CAGT => 0,
+            CGGC => 0,
+            CTGA => 0,
+            OTHER => 0,
+        );
+        my $btype=\%btypes;
+        my $mtype=\%mtypes;
+        $nbmr{$gene}=$btype;
+        $nmut{$gene}=$mtype; 
 
-    my $id=[];
+        my $id=[];
         $nid{$gene}=$id;
-        # print $mutout "\n\n---$gene---\n\n";
+        print $mutout "\n\n---$gene---\n\n";
     }       
 
     my $start=0;
@@ -403,7 +406,7 @@ while(<$inputIFC>){
             $fn=$t;
         }
         $d+=1;     
-        #print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
+        print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
     }
 
     for (my $i=$fs; $i <= $fn; $i++){
@@ -432,7 +435,6 @@ while(<$inputIFC>){
             }
         }
     }
-    #}
 
     if($dist[1] >= $lwind && $dist[2] <= $uwind){
         if($line[2] >= $thres){
@@ -444,20 +446,71 @@ while(<$inputIFC>){
     }
 }
 close($inputIFC);
+close($mutout);
+print("Finished reading\n");
 
 #header for output file
 #_COMMENT_: use join instead of \t all the time
-print $output "GENE\t";
-print $output "M_TYPE_1\tM_TYPE_1_BMR\tM_TYPE_1_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_1_N_MUT\tM_TYPE_1_P\tM_TYPE_1_P_LOCAL\t";
-print $output "M_TYPE_2\tM_TYPE_2_BMR\tM_TYPE_2_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_2_N_MUT\tM_TYPE_2_P\tM_TYPE_2_P_LOCAL\t";
-print $output "M_TYPE_3\tM_TYPE_3_BMR\tM_TYPE_3_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_3_N_MUT\tM_TYPE_3_P\tM_TYPE_3_P_LOCAL\t";
-print $output "M_TYPE_4\tM_TYPE_4_BMR\tM_TYPE_4_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_4_N_MUT\tM_TYPE_4_P\tM_TYPE_4_P_LOCAL\t";
-print $output "M_TYPE_5\tM_TYPE_5_BMR\tM_TYPE_5_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_5_N_MUT\tM_TYPE_5_P\tM_TYPE_5_P_LOCAL\t";
-print $output "M_TYPE_6\tM_TYPE_6_BMR\tM_TYPE_6_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_6_N_MUT\tM_TYPE_6_P\tM_TYPE_6_P_LOCAL\t";
-print $output "M_TYPE_7\tM_TYPE_7_BMR\tM_TYPE_7_BMR_LOCAL\tSIME_LENGTH\tM_TYPE_7_N_MUT\tM_TYPE_7_P\tM_TYPE_7_P_LOCAL\t";
-print $output "FISHER_P FISHER_P_LOCAL N_DHS\n";
+open($output, ">", $outputfile) or die "Could not open $outputfile\n";
+my $header_line = join("\t",
+    "GENE",
+    "M_TYPE_1",
+    "M_TYPE_1_BMR",
+    "M_TYPE_1_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_1_N_MUT",
+    "M_TYPE_1_P",
+    "M_TYPE_1_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_2",
+    "M_TYPE_2_BMR",
+    "M_TYPE_2_BMR_LOCAL",
+    "SIME_LENGTH",
+    "M_TYPE_2_N_MUT",
+    "M_TYPE_2_P",
+    "M_TYPE_2_P_LOCAL",
+    "FISHER_P",
+    "FISHER_P_LOCAL",
+    "N_DHS"
+);
+print $output $header_line . "\n";
 
 #_EXPLANATION_
+print("Starting calculations\n");
 for my $gene (keys %nmut){
     my @pvals=();
     my @lpvals=();
@@ -482,6 +535,7 @@ for my $gene (keys %nmut){
         }
         my $bmr=$wgbmr{$mtype}/$wgdist;
         if($cbmr{$gene} != 0){
+            #_COMMENT_: possible illegal division by 0 here
             $lbmr=$nbmr{$gene}{$mtype}/$cbmr{$gene};
             if($lbmr == 0){ # get from all DHS sites
                 $lbmr=$bmr;
@@ -489,7 +543,7 @@ for my $gene (keys %nmut){
         }else{
             $lbmr=$bmr;
         }
-        print "\n$nmut{$gene}{$mtype}\t$cmut{$gene}\t$bmr\t$lbmr\n";
+        # print "\n$nmut{$gene}{$mtype}\t$cmut{$gene}\t$bmr\t$lbmr\n";
         
         if($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0){
             $p=binomial($nmut{$gene}{$mtype},$cmut{$gene},$bmr);
@@ -498,14 +552,14 @@ for my $gene (keys %nmut){
             $p="NA";
             $lp="NA";
         }
-        print "$gene $mtype $cbmr{$gene} $nbmr{$gene}{$mtype} --- $bmr / $lbmr --- $cmut{$gene} $nmut{$gene}{$mtype} $p $SiMES{$gene}\n";
+        # print "$gene $mtype $cbmr{$gene} $nbmr{$gene}{$mtype} --- $bmr / $lbmr --- $cmut{$gene} $nmut{$gene}{$mtype} $p $SiMES{$gene}\n";
         
         print $output "$mtype\t$bmr\t$lbmr\t$cmut{$gene}\t$nmut{$gene}{$mtype}\t$p\t$lp\t";
         if($nmut{$gene}{$mtype} > 0){
             push(@pvals,$p);
             push(@lpvals,$lp);
         }
-        print "PVALS=@pvals\n";
+        # print "PVALS=@pvals\n";
         push(@occur,$nmut{$gene}{$mtype});
         push(@rate,$bmr);
         push(@lrate,$lbmr);
@@ -522,11 +576,8 @@ for my $gene (keys %nmut){
         $pcomb=fisher_combine_pval(\@pvals);
         $lpcomb=fisher_combine_pval(\@lpvals);
     }
-    print "\n**** $gene $pcomb $lpcomb\n\n";
+    # print "\n**** $gene $pcomb $lpcomb\n\n";
     print $output "$pcomb\t$lpcomb\t$SiMES{$gene}\n";
 }
-
 close($output);
-
-
-
+print("Finished calculations\n");
