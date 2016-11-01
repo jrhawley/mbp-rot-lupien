@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
     <link rel="stylesheet" type="text/css" href="css/scroll-top.css">
-    <!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" href="http://fonts.googleapis.com/icon?family=Material+Icons">
     <script type="text/x-mathjax-config">
@@ -28,34 +27,30 @@
 
     <summary id="contents">
         <h2>Contents</h2>
-        <table id="toc" class="no-centre">
-            <tr>
-                <td><a href="#2016-10">October</a></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="#2016-10_project">Project</a></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="#2016-10_setup">Setup</a></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="#2016-10_c3d-results">C3D Results</a></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td><a href="#2016-10_MuSE">MuSE</a></td>
-            </tr>
-        </table>
+        <ul id="toc" class="collapsible" data-collapsible="expandable">
+            <li>
+                <div class="collapsible-header"><a href="#2016-10">October</a></div>
+                <div class="collapsible-body">
+                    <ul>
+                        <li><a href="#2016-10_project">Project</a></li>
+                        <li><a href="#2016-10_setup">Setup</a></li>
+                        <li><a href="#2016-10_c3d-results">C3D Results</a></li>
+                        <li><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></li>
+                        <li><a href="#2016-10_MuSE">MuSE</a></li>
+                    </ul>
+                </div>
+            </li>
+            <li>
+                <div class="collapsible-header"><a href="#2016-11">November</a></div>
+                <div class="collapsible-body">
+                    <ul>
+                        <li><a href="#2016-11_MuSE">MuSE</a></li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
     </summary>
-    <hr>
+    <br>
 
     <article>
         <section id="2016-10">
@@ -72,39 +67,43 @@
             <section id="2016-10_setup">
                 <h3>Setup</h3>
                 <p>Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>)</p>
-                <table style="width: 100%;">
-                    <tr>
-                        <th>Item</th>
-                        <th>Location</th>
-                    </tr>
-                    <tr>
-                        <td>Original C3D</td>
-                        <td>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</td>
-                    </tr>
-                    <tr>
-                        <td>Original MuSE</td>
-                        <td>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</td>
-                    </tr>
-                    <tr>
-                        <td>Original Somatic Mutations (Sanger)</td>
-                        <td>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</td>
-                    </tr>
-                    <tr>
-                        <td>BCa DHS BigWigs</td>
-                        <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</td>
-                    </tr>
-                    <tr>
-                        <td>BCa DHS BedGraphs (converted from BigWig)</td>
-                        <td>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</td>
-                    </tr>
-                    <tr>
-                        <td>Genes List for Promoters</td>
-                        <td>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</td>
-                    </tr>
-                    <tr>
-                        <td>MCF-7 Cell Lines</td>
-                        <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
-                    </tr>
+                <table class="responsive-table striped">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Original C3D</td>
+                            <td>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</td>
+                        </tr>
+                        <tr>
+                            <td>Original MuSE</td>
+                            <td>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</td>
+                        </tr>
+                        <tr>
+                            <td>Original Somatic Mutations (Sanger)</td>
+                            <td>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</td>
+                        </tr>
+                        <tr>
+                            <td>BCa DHS BigWigs</td>
+                            <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</td>
+                        </tr>
+                        <tr>
+                            <td>BCa DHS BedGraphs (converted from BigWig)</td>
+                            <td>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</td>
+                        </tr>
+                        <tr>
+                            <td>Genes List for Promoters</td>
+                            <td>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</td>
+                        </tr>
+                        <tr>
+                            <td>MCF-7 Cell Lines</td>
+                            <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
+                        </tr>
+                    </tbody>
                     <caption>Table 1: Original data locations. Small enough files of import are in <code>$LHOME/Data</code>, and large samples were left in their original locations.</caption>
                 </table>
 
@@ -235,7 +234,7 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <li>
                         <div class="collapsible-header materialize-red-text">Divide by 0 errors</div>
                         <div class="collapsible-body">
-                            <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536.</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
+                            <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
                         </div>
                     </li>
                     <li>
@@ -249,14 +248,16 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                         </div>
                     </li>
                 </ul>
-                
-
-                <h4></h4>
-                
-
-                <p>I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide.</p>
             </section>
+        </section>
+        <br>
 
+        <section id="2016-11">
+            <h2>November</h2>
+            
+            <section id="2016-11_MuSE">
+                <p>I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.</p>
+            </section>
         </section>
     </article>
 
