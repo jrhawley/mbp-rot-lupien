@@ -3,19 +3,21 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
     <link rel="stylesheet" type="text/css" href="css/scroll-top.css">
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/icon?family=Material+Icons">
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]} });
     </script>
     <script type="text/javascript" async src="node_modules/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script type="text/javascript" src="node_modules/clipboard/dist/clipboard.min.js"></script>
     <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
     <script type="text/javascript" src="js/citetag.js"></script>
     <script type="text/javascript" src="js/header-scroll.js"></script>
+
 </head>
 
 <body>
@@ -227,18 +229,21 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                 <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536.</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
 
                 <h4>Intractible calculations</h4>
-                <p>It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to confirm the results from the Nature paper.</p>
+                <p>It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to see something like from the Nature paper.</p>
+
                 <p>I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning.</p>
 
                 <p>It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.</p>
+
+                <p>I talked with Sven, and he said if I want I can </p>
             </section>
 
         </section>
     </article>
 
     <footer>
-        <a class="cd-top"><i class="glyphicon glyphicon-chevron-up"></i></a>
-        <a class="cd-bottom"><i class="glyphicon glyphicon-chevron-down"></i></a>
+        <a class="cd-top"><i class="material-icons">keyboard_arrow_up</i></a>
+        <a class="cd-bottom"><i class="material-icons">keyboard_arrow_down</i></a>
     </footer>
 </body>
 
