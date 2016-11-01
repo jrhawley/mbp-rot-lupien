@@ -7,4 +7,4 @@ module load perl/5.18.1
 module load R
 
 #mutations.sorted.bed C3D.output DHS_reference.bed window cor
-perl MuSE-1.6.pl $1 $2 $3 $4 $5 
+perl MuSE.pl -m $1 -c $2 -b $3 -w $4 -t $5 
