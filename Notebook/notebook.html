@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
     <link rel="stylesheet" type="text/css" href="css/scroll-top.css">
-    <link rel="stylesheet" type="text/css" href="css/normalize.css">
+    <!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" href="http://fonts.googleapis.com/icon?family=Material+Icons">
     <script type="text/x-mathjax-config">
@@ -126,10 +126,16 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
 
                 <p>Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.</p>
 
-                <h4>Mistakes were made</h4>
-                <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
-                <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.</p>
-                <p>To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.</p>
+                <ul class="collapsible" data-collapsible="accordion">
+                    <li>
+                        <div class="collapsible-header">Mistakes were made</div>
+                        <div class="collapsible-body">
+                            <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
+                            <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.</p>
+                            <p>To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.</p>
+                        </div>
+                    </li>
+                </ul>
                 <p>It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.</p>
                 <p>Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow (2016-10-26).</p>
 
