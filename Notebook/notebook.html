@@ -128,7 +128,7 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
 
                 <ul class="collapsible" data-collapsible="accordion">
                     <li>
-                        <div class="collapsible-header">Mistakes were made</div>
+                        <div class="collapsible-header materialize-red-text">Mistakes were made</div>
                         <div class="collapsible-body">
                             <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
                             <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.</p>
@@ -150,39 +150,39 @@ cat results_*.formatted.txt >> results_all.txt
                 <h3>C3D Recommendations</h3>
 
                 <p>C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:</p>
-                <ul>
+                <ol>
                     <li>No config file</li>
-                    <ul>
+                    <ol>
                         <li>Making config files and running scripts can get messy, since it requires writing to a config file every time you want to run the script</li>
                         <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
-                    </ul>
+                    </ol>
                     <li>Using getopt/standard argparsing</li>
-                    <ul>
+                    <ol>
                         <li>Will make it easier to parse arguments without the need for a config file</li>
                         <li>Lessen chance of making mistakes when running</li>
-                    </ul>
+                    </ol>
                     <li>Rewrite in Python or Perl</li>
-                    <ul>
+                    <ol>
                         <li>Bash is useful, but not as readable or supported for many of these things</li>
                         <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
                         <li>Calculations, command line, and parallelization are easily supported in these languages</li>
-                    </ul>
+                    </ol>
                     <li>Parallelization</li>
-                    <ul>
+                    <ol>
                         <li>These scripts take a long time to run</li>
                         <li>Using perl or python packages to parallelize computations will significantly speed up processing time</li>
-                    </ul>
+                    </ol>
                     <li>Check files and folders before executing</li>
-                    <ul>
+                    <ol>
                         <li>Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed</li>
-                    </ul>
+                    </ol>
                     <li>Comments</li>
-                    <ul>
+                    <ol>
                         <li>Please put comments all over the place in the code</li>
                         <li>Takes a lot of time to understand what's going on without them</li>
                         <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
-                    </ul>
-                </ul>
+                    </ol>
+                </ol>
             </section>
 
             <section id="2016-10_MuSE">
@@ -231,17 +231,30 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                 <p>I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.</p>
                 <p>I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.</p>
 
-                <h4>Divide by 0 errors</h4>
-                <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536.</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
+                <ul class="collapsible" data-collapsible="expandable">
+                    <li>
+                        <div class="collapsible-header materialize-red-text">Divide by 0 errors</div>
+                        <div class="collapsible-body">
+                            <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536.</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header materialize-red-text">Intractible calculations</div>
+                        <div class="collapsible-body">
+                            <p>It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to see something like from the Nature paper.</p>
 
-                <h4>Intractible calculations</h4>
-                <p>It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to see something like from the Nature paper.</p>
+                            <p>I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning.</p>
 
-                <p>I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning.</p>
+                            <p>It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.</p>
+                        </div>
+                    </li>
+                </ul>
+                
 
-                <p>It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.</p>
+                <h4></h4>
+                
 
-                <p>I talked with Sven, and he said if I want I can </p>
+                <p>I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide.</p>
             </section>
 
         </section>
