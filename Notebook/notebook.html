@@ -45,11 +45,11 @@
             </tr>
             <tr>
                 <td></td>
-                <td><a href="#2016-10_MuSE">MuSE</a></td>
+                <td><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></td>
             </tr>
             <tr>
                 <td></td>
-                <td><a href="#2016-10_c3d-recommendations">C3D Recommendations</a></td>
+                <td><a href="#2016-10_MuSE">MuSE</a></td>
             </tr>
         </table>
     </summary>
@@ -77,31 +77,31 @@
                     </tr>
                     <tr>
                         <td>Original C3D</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</code></td>
+                        <td>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</td>
                     </tr>
                     <tr>
                         <td>Original MuSE</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</code></td>
+                        <td>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</td>
                     </tr>
                     <tr>
                         <td>Original Somatic Mutations (Sanger)</td>
-                        <td><code>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</code></td>
+                        <td>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</td>
                     </tr>
                     <tr>
                         <td>BCa DHS BigWigs</td>
-                        <td><code>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</code></td>
+                        <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</td>
                     </tr>
                     <tr>
                         <td>BCa DHS BedGraphs (converted from BigWig)</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</code></td>
+                        <td>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</td>
                     </tr>
                     <tr>
                         <td>Genes List for Promoters</td>
-                        <td><code>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</code></td>
+                        <td>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</td>
                     </tr>
                     <tr>
                         <td>MCF-7 Cell Lines</td>
-                        <td><code>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</code></td>
+                        <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
                     </tr>
                     <caption>Table 1: Original data locations. Small enough files of import are in <code>$LHOME/Data</code>, and large samples were left in their original locations.</caption>
                 </table>
@@ -136,6 +136,45 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
 cat results_$i.txt | awk -v OFS='\t' '{if (NR!=1) {print $1, $4, $7, $7, $8}}' > results_$i.formatted.txt
 cat results_*.formatted.txt >> results_all.txt
                 </code></pre>
+            </section>
+
+            <section id="2016-10_c3d-recommendations">
+                <h3>C3D Recommendations</h3>
+
+                <p>C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:</p>
+                <ul>
+                    <li>No config file</li>
+                    <ul>
+                        <li>Making config files and running scripts can get messy, since it requires writing to a config file every time you want to run the script</li>
+                        <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
+                    </ul>
+                    <li>Using getopt/standard argparsing</li>
+                    <ul>
+                        <li>Will make it easier to parse arguments without the need for a config file</li>
+                        <li>Lessen chance of making mistakes when running</li>
+                    </ul>
+                    <li>Rewrite in Python or Perl</li>
+                    <ul>
+                        <li>Bash is useful, but not as readable or supported for many of these things</li>
+                        <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
+                        <li>Calculations, command line, and parallelization are easily supported in these languages</li>
+                    </ul>
+                    <li>Parallelization</li>
+                    <ul>
+                        <li>These scripts take a long time to run</li>
+                        <li>Using perl or python packages to parallelize computations will significantly speed up processing time</li>
+                    </ul>
+                    <li>Check files and folders before executing</li>
+                    <ul>
+                        <li>Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed</li>
+                    </ul>
+                    <li>Comments</li>
+                    <ul>
+                        <li>Please put comments all over the place in the code</li>
+                        <li>Takes a lot of time to understand what's going on without them</li>
+                        <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
+                    </ul>
+                </ul>
             </section>
 
             <section id="2016-10_MuSE">
@@ -183,45 +222,15 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                 </code></pre>
                 <p>I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.</p>
                 <p>I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.</p>
-            </section>
 
-            <section id="2016-10_c3d-recommendations">
-                <h3>C3D Recommendations</h3>
+                <h4>Divide by 0 errors</h4>
+                <p>After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536.</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.</p>
 
-                <p>C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:</p>
-                <ul>
-                    <li>No config file</li>
-                    <ul>
-                        <li>Making config files and running scripts can get messy, since it requires writing to a config file every time you want to run the script</li>
-                        <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
-                    </ul>
-                    <li>Using getopt/standard argparsing</li>
-                    <ul>
-                        <li>Will make it easier to parse arguments without the need for a config file</li>
-                        <li>Lessen chance of making mistakes when running</li>
-                    </ul>
-                    <li>Rewrite in Python or Perl</li>
-                    <ul>
-                        <li>Bash is useful, but not as readable or supported for many of these things</li>
-                        <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
-                        <li>Calculations, command line, and parallelization are easily supported in these languages</li>
-                    </ul>
-                    <li>Parallelization</li>
-                    <ul>
-                        <li>These scripts take a long time to run</li>
-                        <li>Using perl or python packages to parallelize computations will significantly speed up processing time</li>
-                    </ul>
-                    <li>Check files and folders before executing</li>
-                    <ul>
-                        <li>Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed</li>
-                    </ul>
-                    <li>Comments</li>
-                    <ul>
-                        <li>Please put comments all over the place in the code</li>
-                        <li>Takes a lot of time to understand what's going on without them</li>
-                        <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
-                    </ul>
-                </ul>
+                <h4>Intractible calculations</h4>
+                <p>It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to confirm the results from the Nature paper.</p>
+                <p>I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning.</p>
+
+                <p>It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.</p>
             </section>
 
         </section>

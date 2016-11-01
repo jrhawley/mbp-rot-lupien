@@ -447,12 +447,7 @@ aside {
     margin: 0 20px;
 }
 
-article {
-    margin: 0 auto;
-    max-width: 1000px;
-}
-
-summary {
+header, article, summary {
     margin: 0 auto;
     max-width: 1000px;
 }
@@ -483,6 +478,7 @@ table {
     -ms-transform: translate(-50%, 0%);
     -o-transform: translate(-50%, 0%);
     transform: translate(-50%, 0%);
+    max-width: 1000px;
 }
 table.no-centre {
     position: relative;
