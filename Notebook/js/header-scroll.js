@@ -37,4 +37,6 @@ $(document).ready(function() {
 			scrollTop: $(document).height()-$(window).height(),
 		}, scroll_duration);
 	});
+
+	$('.scrollspy').scrollSpy();
 });
