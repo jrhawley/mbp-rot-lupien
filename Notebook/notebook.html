@@ -19,12 +19,10 @@
 </head>
 
 <body>
-    <header id="header">
-        <h3>2016 Lab Notebook</h3>
-    </header>
     <article>
         <div class="row">
             <div class="col s12 m9 l10">
+                <h3>2016 Lab Notebook</h3>
                 <div id="project" class="section scrollspy">
                     <h4>Project</h4>
                     <p>
@@ -83,8 +81,6 @@
                                 <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
                             </tr>
                         </tbody>
-                        <caption>Table 1: Original data locations. Small enough files of import are in <code>$LHOME/Data</code>, and large
-                            samples were left in their original locations.</caption>
                     </table>
                     <p>
                         I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
@@ -111,14 +107,15 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
                         <li>
                             <div class="collapsible-header materialize-red-text">Mistakes were made</div>
                             <div class="collapsible-body">
-                                <p>Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally
-                                    used the unmerged/unsorted anchor file. That has been corrected in the config files.</p>
-                                <p>I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt
-                                    and most of the reference BEDs, but I think a few of them were overwritten.</p>
-                                <p>To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted
-                                    anchor file. It's a poor man's parallelization implementation, but given the current state
-                                    of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the
-                                    code with lots of abstraction. I think it's necessary, just not for me and not right now.</p>
+                                <p>
+                                    Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.
+                                </p>
+                                <p>
+                                    I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.
+                                </p>
+                                <p>
+                                    To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.
+                                </p>
                             </div>
                         </li>
                     </ul>
@@ -257,6 +254,10 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                             </div>
                         </li>
                     </ul>
+                </div>
+
+                <div id="refactoring-muse" class="section scrollspy">
+                    <h4>Refactoring MuSE</h4>
                     <p>
                         I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
                     </p>
@@ -269,6 +270,7 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <li><a href="#c3d-results">C3D Results</a></li>
                     <li><a href="#c3d-recommendations">C3D Recommendations</a></li>
                     <li><a href="#running-muse">Running MuSE</a></li>
+                    <li><a href="#refactoring-muse">Refactoring MuSE</a></li>
                 </ul>
             </div>
         </div>
