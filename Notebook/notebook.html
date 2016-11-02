@@ -261,6 +261,9 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <p>
                         I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
                     </p>
+                    <p>
+                        I've run MuSE with the full somatic mutations file and 10 lines of the C3D output, to test how long it takes. It took ~3 min to run the 10 lines. So I'll need to figure out tomorrow how many files I should split <code>results_all.formatted.txt</code> into.
+                    </p>
                 </div>
             </div>
             <div class="col hide-on-small-only m3 l2">
