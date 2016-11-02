@@ -13,7 +13,7 @@
     <script type="text/javascript" async src="node_modules/mathjax/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script type="text/javascript" src="node_modules/clipboard/dist/clipboard.min.js"></script>
     <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script type="text/javascript" src="js/materialize.js"></script>
     <script type="text/javascript" src="js/citetag.js"></script>
     <script type="text/javascript" src="js/header-scroll.js"></script>
 </head>
@@ -256,13 +256,78 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     </ul>
                 </div>
 
-                <div id="refactoring-muse" class="section scrollspy">
-                    <h4>Refactoring MuSE</h4>
+                <div id="muse-specific" class="section scrollspy">
+                    <h4>MuSE on specific genes of interest</h4>
                     <p>
-                        I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, like GATA3, FOXA1, and ESR1, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
+                        I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
                     </p>
                     <p>
                         I've run MuSE with the full somatic mutations file and 10 lines of the C3D output, to test how long it takes. It took ~3 min to run the 10 lines. So I'll need to figure out tomorrow how many files I should split <code>results_all.formatted.txt</code> into.
+                    </p>
+                    <p>
+                        Following Sven's advice, before I start working on parallelizing MuSE, I'm going to run it on a select list of genes. I'm using <code>/mnt/work1/users/lupiengroup/Paul/resources/gencodev19.txt</code> as a reference for gene regions, and I'll be taking those regions from the C3D output, to use as smaller output files for MuSE to read. While those are running, I'll work on making the calculations parallelized. My list of genes and regions is in the table below.
+                    </p>
+                    <table class="responsive-table striped">
+                        <thead>
+                            <th>Gene</th>
+                            <th>Chrom</th>
+                            <th>Start</th>
+                            <th>End</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><em>GATA3</em></td>
+                                <td>chr10</td>
+                                <td>8095566</td>
+                                <td>8116027</td>
+                            </tr>
+                            <tr>
+                                <td><em>FOXA1</em></td>
+                                <td>chr14</td>
+                                <td>38059188</td>
+                                <td>38065264</td>
+                            </tr>
+                            <tr>
+                                <td><em>ESR1</em></td>
+                                <td>chr6</td>
+                                <td>151977825</td>
+                                <td>152305300</td>
+                            </tr>
+                            <tr>
+                                <td><em>PGR (PR)</em></td>
+                                <td>chr11</td>
+                                <td>100900354</td>
+                                <td>100922201</td>
+                            </tr>
+                            <tr>
+                                <td><em>ERBB2 (HER2)</em></td>
+                                <td>chr17</td>
+                                <td>37844166</td>
+                                <td>37886679</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA1</em></td>
+                                <td>chr17</td>
+                                <td>41196311</td>
+                                <td>41277338</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA2</em></td>
+                                <td>chr13</td>
+                                <td>32889610</td>
+                                <td>32972585</td>
+                            </tr>
+                            <tr>
+                                <td><em>TP53</em></td>
+                                <td>chr17</td>
+                                <td>7565096</td>
+                                <td>7590745</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (<em>i.e.</em> if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written <a href="files/split-c3d.pl">split-c3d.pl</a> to split up the C3D output and only look for regions relating to genes of interest. And using a modified <a href="files/run-MuSE.sh">run-MuSE.sh</a> file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
                     </p>
                 </div>
             </div>
@@ -273,14 +338,14 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <li><a href="#c3d-results">C3D Results</a></li>
                     <li><a href="#c3d-recommendations">C3D Recommendations</a></li>
                     <li><a href="#running-muse">Running MuSE</a></li>
-                    <li><a href="#refactoring-muse">Refactoring MuSE</a></li>
+                    <li><a href="#muse-specific">MuSE on specific genes of interest</a></li>
                 </ul>
             </div>
         </div>
     </article>
     <footer>
-        <a class="btn-floating waves-effect waves-light materialize-red cd-top"><i class="material-icons">keyboard_arrow_up</i></a>
-        <a class="btn-floating waves-effect waves-light materialize-red cd-bottom"><i class="material-icons">keyboard_arrow_down</i></a>
+        <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-top"><i class="material-icons">keyboard_arrow_up</i></a>
+        <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-bottom"><i class="material-icons">keyboard_arrow_down</i></a>
     </footer>
 </body>
 
