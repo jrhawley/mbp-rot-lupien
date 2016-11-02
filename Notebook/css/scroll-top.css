@@ -37,13 +37,11 @@
 }
 .cd-top.cd-is-visible:hover,
 .cd-bottom.cd-is-visible:hover {
-        background-color: rgba(169, 68, 66, 1);
         opacity: 1;
         text-decoration: none;
         color: rgba(255, 255, 255, 1);
     }
 .no-touch .cd-top:hover,
 .no-touch .cd-bottom:hover {
-    background-color: rgba(169, 68, 66, 1);
     opacity: 1;
 }
