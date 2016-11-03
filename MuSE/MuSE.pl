@@ -474,41 +474,41 @@ my $header_line = join("\t",
     "M_TYPE_2_N_MUT",
     "M_TYPE_2_P",
     "M_TYPE_2_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
+    "M_TYPE_3",
+    "M_TYPE_3_BMR",
+    "M_TYPE_3_BMR_LOCAL",
     "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
+    "M_TYPE_3_N_MUT",
+    "M_TYPE_3_P",
+    "M_TYPE_3_P_LOCAL",
+    "M_TYPE_4",
+    "M_TYPE_4_BMR",
+    "M_TYPE_4_BMR_LOCAL",
     "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
+    "M_TYPE_4_N_MUT",
+    "M_TYPE_4_P",
+    "M_TYPE_4_P_LOCAL",
+    "M_TYPE_5",
+    "M_TYPE_5_BMR",
+    "M_TYPE_5_BMR_LOCAL",
     "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
+    "M_TYPE_5_N_MUT",
+    "M_TYPE_5_P",
+    "M_TYPE_5_P_LOCAL",
+    "M_TYPE_6",
+    "M_TYPE_6_BMR",
+    "M_TYPE_6_BMR_LOCAL",
     "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
+    "M_TYPE_6_N_MUT",
+    "M_TYPE_6_P",
+    "M_TYPE_6_P_LOCAL",
+    "M_TYPE_7",
+    "M_TYPE_7_BMR",
+    "M_TYPE_7_BMR_LOCAL",
     "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
+    "M_TYPE_7_N_MUT",
+    "M_TYPE_7_P",
+    "M_TYPE_7_P_LOCAL",
     "FISHER_P",
     "FISHER_P_LOCAL",
     "N_DHS"
@@ -539,17 +539,19 @@ for my $gene (keys %nmut){
         if(!defined $cbmr{$gene}){
             $cbmr{$gene}=0;
         }
-        my $bmr=$wgbmr{$mtype}/$wgdist;
-        if($cbmr{$gene} != 0){
-            #_COMMENT_: possible illegal division by 0 here
-            $lbmr=$nbmr{$gene}{$mtype}/$cbmr{$gene};
-            if($lbmr == 0){ # get from all DHS sites
-                $lbmr=$bmr;
-            }
-        }else{
-            $lbmr=$bmr;
+
+        my $bmr = 0;
+        if (0 != $wgdist) {
+            $bmr = $wgbmr{$mtype}/$wgdist;
         }
-        # print "\n$nmut{$gene}{$mtype}\t$cmut{$gene}\t$bmr\t$lbmr\n";
+        if ($cbmr{$gene} != 0) {
+            $lbmr = $nbmr{$gene}{$mtype}/$cbmr{$gene};
+            if ($lbmr == 0) { # get from all DHS sites
+                $lbmr = $bmr;
+            }
+        } else {
+            $lbmr = $bmr;
+        }
         
         if($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0){
             $p=binomial($nmut{$gene}{$mtype},$cmut{$gene},$bmr);
@@ -558,7 +560,6 @@ for my $gene (keys %nmut){
             $p="NA";
             $lp="NA";
         }
-        # print "$gene $mtype $cbmr{$gene} $nbmr{$gene}{$mtype} --- $bmr / $lbmr --- $cmut{$gene} $nmut{$gene}{$mtype} $p $SiMES{$gene}\n";
         
         print $output "$mtype\t$bmr\t$lbmr\t$cmut{$gene}\t$nmut{$gene}{$mtype}\t$p\t$lp\t";
         if($nmut{$gene}{$mtype} > 0){
@@ -571,7 +572,7 @@ for my $gene (keys %nmut){
         push(@lrate,$lbmr);
     }
 
-    my $sg=0;
+    my $sg = 0;
     my $pcomb;
     my $lpcomb;
     
