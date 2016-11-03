@@ -25,6 +25,7 @@
                 <h3>2016 Lab Notebook</h3>
                 <div id="project" class="section scrollspy">
                     <h4>Project</h4>
+                    <div class="chip">2016-10-17</div>
                     <p>
                         <abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.
                     </p>
@@ -41,6 +42,7 @@
 
                 <div id="setup" class="section scrollspy">
                     <h4>Setup</h4>
+                    <div class="chip">2016-10-17</div>
                     <p>
                         Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>).
                     </p>
@@ -82,6 +84,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    <div class="chip">2016-10-21</div>
                     <p>
                         I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
                     </p>
@@ -100,12 +103,16 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
 
                 <div id="c3d-results" class="section scrollspy">
                     <h4>C3D Results</h4>
+                    <div class="chip">2016-10-23</div>
                     <p>
                         Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.
                     </p>
                     <ul class="collapsible" data-collapsible="accordion">
                         <li>
-                            <div class="collapsible-header materialize-red-text">Mistakes were made</div>
+                            <div class="collapsible-header materialize-red-text">
+                                <div class="chip">2016-10-24</div>
+                                Mistakes were made
+                            </div>
                             <div class="collapsible-body">
                                 <p>
                                     Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.
@@ -136,6 +143,7 @@ cat results_*.formatted.txt >> results_all.txt
 
                 <div id="c3d-recommendations" class="section scrollspy">
                     <h4>C3D Recommendations</h4>
+                    <div class="chip">2016-10-26</div>
                     <p>
                         C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:
                     </p>
@@ -180,6 +188,7 @@ cat results_*.formatted.txt >> results_all.txt
 
                 <div id="running-muse" class="section scrollspy">
                     <h4>Running MuSE</h4>
+                    <div class="chip">2016-10-27</div>
                     <p>
                         Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:
                     </p>
@@ -195,6 +204,7 @@ sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_muta
                     <pre><code>
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
                     </code></pre>
+                    <div class="chip">2016-10-28</div>
                     <p>
                         To filter out duplicate mutations, sort with the unique option:
                     </p>
@@ -232,7 +242,10 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     </p>
                     <ul class="collapsible" data-collapsible="expandable">
                         <li>
-                            <div class="collapsible-header materialize-red-text">Divide by 0 errors</div>
+                            <div class="collapsible-header materialize-red-text">
+                                <div class="chip">2016-10-31</div>
+                                Divide by 0 errors
+                            </div>
                             <div class="collapsible-body">
                                 <p>
                                     After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.
@@ -240,13 +253,16 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                             </div>
                         </li>
                         <li>
-                            <div class="collapsible-header materialize-red-text">Intractible calculations</div>
+                            <div class="collapsible-header materialize-red-text">
+                                <div class="chip">2016-10-31</div>
+                                Intractible calculations
+                            </div>
                             <div class="collapsible-body">
                                 <p>
-                                    It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region (chr6: [151654148, 152103274)), I should be able to see something like from the Nature paper.
+                                    It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region, I should be able to see something like from the Nature paper.
                                 </p>
                                 <p>
-                                    I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning.
+                                    I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored (2016-11-03).</strong>
                                 </p>
                                 <p>
                                     It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.
@@ -258,6 +274,7 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
 
                 <div id="muse-specific" class="section scrollspy">
                     <h4>MuSE on specific genes of interest</h4>
+                    <div class="chip">2016-11-02</div>
                     <p>
                         I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
                     </p>
@@ -329,6 +346,69 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <p>
                         Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (<em>i.e.</em> if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written <a href="files/split-c3d.pl">split-c3d.pl</a> to split up the C3D output and only look for regions relating to genes of interest. And using a modified <a href="files/run-MuSE.sh">run-MuSE.sh</a> file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
                     </p>
+
+                    <div class="chip">2016-11-03</div>
+                    <p>
+                        Calculations completed overnight, here's a summary of the genes, their size, and the runtimes.
+                    </p>
+                    <table class="responsive-table striped">
+                        <thead>
+                            <th>Gene</th>
+                            <th>C3D file size (lines)</th>
+                            <th>MuSE file size (lines)</th>
+                            <th>Runtime (mm:ss)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><em>GATA3</em></td>
+                                <td>5804</td>
+                                <td>26</td>
+                                <td>05:20</td>
+                            </tr>
+                            <tr>
+                                <td><em>FOXA1</em></td>
+                                <td>1754</td>
+                                <td>14</td>
+                                <td>35:44</td>
+                            </tr>
+                            <tr>
+                                <td><em>ESR1</em></td>
+                                <td>5415</td>
+                                <td>32</td>
+                                <td>03:40</td>
+                            </tr>
+                            <tr>
+                                <td><em>PGR (PR)</em></td>
+                                <td>417</td>
+                                <td>7</td>
+                                <td>03:00</td>
+                            </tr>
+                            <tr>
+                                <td><em>ERBB2 (HER2)</em></td>
+                                <td>7216</td>
+                                <td>59</td>
+                                <td>05:45</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA1</em></td>
+                                <td>9806</td>
+                                <td>69</td>
+                                <td>07:30</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA2</em></td>
+                                <td>1213</td>
+                                <td>13</td>
+                                <td>03:47</td>
+                            </tr>
+                            <tr>
+                                <td><em>TP53</em></td>
+                                <td>16999</td>
+                                <td>111</td>
+                                <td>10:51</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <div class="col hide-on-small-only m3 l2">
