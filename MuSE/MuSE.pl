@@ -8,16 +8,23 @@ use Getopt::Long;
 use Pod::Usage;
 
 ### Global Variables ##########################################################
+# Runtime options
 my $man              = 0;
 my $help             = 0;
 my $inputMUTfile     = "";
 my $inputC3Dfile     = "";
 my $inputBEDfile     = "";
-my $window           = 0;
+my $window           = 0;   # Window size '-w' must be equal or smaller than the C3D window size used
 my $thres            = 0;
 my $suffix_muse      = "MUSE6";
 my $suffix_mut       = "MUT6";
 my $output_directory = "";
+my $use_cluster      = 0;
+
+# Mutation information
+my @mutations = ();
+my @chroms    = ();
+my @starts    = ();
 
 ### Subroutines ###############################################################
 # binomial
@@ -127,9 +134,10 @@ sub parse_args {
         'b|bed=s'       => \$inputBEDfile,
         'w|window=i'    => \$window,
         't|threshold=f' => \$thres,
-        'help|?'        => \$help,
+        'help|h'        => \$help,
         'man'           => \$man,
-        'o|output:s'    => \$output_directory
+        'o|output:s'    => \$output_directory,
+        'q|cluster'     => \$use_cluster
     ) or pod2usage(2);
     if ($help) {
         pod2usage(1);
@@ -161,25 +169,8 @@ sub parse_args {
 
 ### Main ######################################################################
 parse_args();
-print("Runtime parameters:\n");
-print(join("\n\t", "\t$inputMUTfile", $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
-
-# Calculate the total number of each type of mutation
-# and total within regulatory elements (C3D).
-my %SiMES=();
-
-# Sorted mutation file
-my $inputMUT;
-
-#C3D output file
-my $inputC3D;
-
-#Bed file used for the C3D analysis -- will use genomewide mutation rate if no mutations within selected window
-my $inputBED;
-
-# +/- window size -- Must be equal or smaller than the C3D window size used
-
-# threshold for SiME / SRE --- ie. elements connected by C3D will be connect at this threshold
+print("Runtime parameters:\n\t");
+print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
 
 my $output;
 my $outputfile = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
@@ -187,20 +178,17 @@ my $outputfile = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
 my $mutout;
 my $mutoutfile = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
 
-my @mutations = ();
-my %landmarks = ();
-my @chroms    = ();
-my @starts    = ();
-my %mutP=();
 
-my $n=-1; # array position
+### Parsing Mutations File ############
+my $n         = -1; # array position
+my %landmarks = ();
+my %mutP      = ();
 
 print("Reading mutation file\n");
-open($inputMUT, "<", $inputMUTfile) or die "Could not open $inputMUTfile!\n";
+open(my $inputMUT, "<", $inputMUTfile) or die "Could not open $inputMUTfile!\n";
 while (<$inputMUT>) {
     chomp();
-
-    $n+=1;
+    $n += 1;
     push(@mutations, $_);
 
     # extract information from mutations file
@@ -248,7 +236,7 @@ my %wgbmr = (
 );
 
 print("Reading BED file\n");
-open($inputBED, "<", $inputBEDfile) or die "Could not open $inputBEDfile!\n";
+open(my $inputBED, "<", $inputBEDfile) or die "Could not open $inputBEDfile!\n";
 #_EXPLANATION_
 while (<$inputBED>) {
     chomp();
@@ -308,15 +296,17 @@ while (<$inputBED>) {
 close($inputBED);
 print("Finished reading\n");
 
-my %nbmr = (); #mut within bmr regions
-my %cbmr = (); #bmr coverage
-my %nmut = (); #mut within test regions
-my %cmut = (); #test region coverage
-my %tmut = ();
-my %nid  = ();
+
+my %SiMES = ();  # Calculate the total number of each type of mutation and total within regulatory elements (C3D)
+my %nbmr  = ();  # mut within bmr regions
+my %cbmr  = ();  # bmr coverage
+my %nmut  = ();  # mut within test regions
+my %cmut  = ();  # test region coverage
+my %tmut  = ();
+my %nid   = ();
 
 print("Reading C3D output\n");
-open($inputC3D, "<", $inputC3Dfile) or die "Could not open $inputC3Dfile!\n";
+open(my $inputC3D, "<", $inputC3Dfile) or die "Could not open $inputC3Dfile!\n";
 open($mutout, ">", $mutoutfile) or die "Could not open $mutoutfile\n";
 #_EXPLANATION_
 while (<$inputC3D>) {
@@ -585,6 +575,7 @@ MuSE: calculating significantly mutated regions
 perl MuSE.pl -m <mutations BED> -c <C3D output file> -b <DHS reference BED> -w <window> -t <threshold>
 
 Options:
-    --help              Brief help message
+    -h, --help          Brief help message
     --man               Man page with full documentation
     -o, --output        Directory path for output files
+    -q, --cluster       Use cluster for faster processing
