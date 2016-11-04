@@ -30,9 +30,9 @@ my $output_directory = "";
 # Outputs:
 #   p_value: p-value resulting from binomial test
 sub binomial{
-    my $x=shift;
-    my $n=shift;
-    my $p=shift;
+    my $x = shift;
+    my $n = shift;
+    my $p = shift;
 
     # start R instance
     my $R = Statistics::R->new();
@@ -43,7 +43,7 @@ sub binomial{
     $R->set('p', $p);
 
     # perform test
-    $R->run(q`b <- binom.test(x, n, p, alternative="greater" )`); # may want to make greater than
+    $R->run(q`b <- binom.test(x, n, p, alternative="greater")`);
     my $p_value = $R->get('b$p.value');
 
     $R->stop();
@@ -60,13 +60,11 @@ sub binomial{
 #   p_value: combined p-value
 sub fisher_combine_pval{
     #_COMMENT_: why not initially cast as array?
-    my $pvals=shift;
-
+    my $pvals = shift;
     my $R = Statistics::R->new();
 
     # combine values
     $R->set('pvals', [@{$pvals}]);
-    #$R->run(q`chisq <- -2*sum(log(pvals,10))`);
     $R->run(q`chisq <- -2*sum(log(pvals))`);
     $R->run(q`pval.combined <- 1 - pchisq(chisq, df = 2*length(pvals))`);
 
@@ -96,26 +94,26 @@ sub log10 {
 # Outputs:
 #   type: type of mutation
 sub assign_type {
-    my $a=shift;
-    my $b=shift;
+    my $a = shift;
+    my $b = shift;
     my $type;
 
-    if(($a eq "A" && $b eq "C") || ($a eq "T" && $b eq "G")){
-       $type="ACTG";
-    }elsif(($a eq "A" && $b eq "G") || ($a eq "T" && $b eq "C")){
-       $type="AGTC";
-    }elsif(($a eq "A" && $b eq "T") || ($a eq "T" && $b eq "A")){
-       $type="ATTA";
-    }elsif(($a eq "C" && $b eq "A") || ($a eq "G" && $b eq "T")){
-       $type="CAGT";
-    }elsif(($a eq "C" && $b eq "G") || ($a eq "G" && $b eq "C")){
-       $type="CGGC";
-    }elsif(($a eq "C" && $b eq "T") || ($a eq "G" && $b eq "A")){
-       $type="CTGA";
-    }else{
-       $type="OTHER";
+    if (($a eq "A" && $b eq "C") || ($a eq "T" && $b eq "G")) {
+        $type = "ACTG";
+    } elsif (($a eq "A" && $b eq "G") || ($a eq "T" && $b eq "C")) {
+        $type="AGTC";
+    } elsif (($a eq "A" && $b eq "T") || ($a eq "T" && $b eq "A")) {
+        $type="ATTA";
+    } elsif (($a eq "C" && $b eq "A") || ($a eq "G" && $b eq "T")) {
+        $type="CAGT";
+    } elsif (($a eq "C" && $b eq "G") || ($a eq "G" && $b eq "C")) {
+        $type="CGGC";
+    } elsif (($a eq "C" && $b eq "T") || ($a eq "G" && $b eq "A")) {
+        $type="CTGA";
+    } else {
+        $type="OTHER";
     }
-    #_COMMENT_: add "NONE" mutation, just for robustness
+    #_COMMENT_: add "NONE" mutation? just for robustness
     return($type);
 }
 
@@ -193,6 +191,7 @@ my @mutations = ();
 my %landmarks = ();
 my @chroms    = ();
 my @starts    = ();
+my %mutP=();
 
 my $n=-1; # array position
 
@@ -212,46 +211,39 @@ while (<$inputMUT>) {
     my $A1   = $line[4];
     my $A2   = $line[5];
 
-    #_EXPLANATION_
+    # save locations of points of interest, and the chromosomes their on
     if (!exists $landmarks{$chr}) {
         $landmarks{$chr} = $n;
         push(@starts, $n);
         push(@chroms, $chr);
     }  
 
-}
-close($inputMUT);
-
-#_COMMENT_: add this to the previous while loop, don't go through all the lines again
-my %mutP=();
-for my $mutation (@mutations) {
-    my @mut = split(/\t/, $mutation);
-
-    #_EXPLANATION_
-    if (!exists $mutP{$mut[3]}) {
-        $mutP{$mut[3]} = 1;
+    # add to mutation count for that sample
+    if (!exists $mutP{$id}) {
+        $mutP{$id} = 1;
     } else {
-        $mutP{$mut[3]} += 1;
+        $mutP{$id} += 1;
     }
 }
+close($inputMUT);
 print("Finished reading\n");
 
 
-my %mgene=();
-my %migene=();
-my %mexon=();
-my $mg=0;
-my $mi=0;
-my %pmgene=();
-my %pmigene=();
-my $wgdist=0;
-my %wgbmr=(
-    "ACTG" => 0,
-    "AGTC" => 0,
-    "ATTA" => 0,
-    "CAGT" => 0,
-    "CGGC" => 0,
-    "CTGA" => 0,
+my %mgene   = ();
+my %migene  = ();
+my %mexon   = ();
+my $mg      = 0;
+my $mi      = 0;
+my %pmgene  = ();
+my %pmigene = ();
+my $wgdist  = 0;
+my %wgbmr = (
+    "ACTG"  => 0,
+    "AGTC"  => 0,
+    "ATTA"  => 0,
+    "CAGT"  => 0,
+    "CGGC"  => 0,
+    "CTGA"  => 0,
     "OTHER" => 0,
 );
 
@@ -262,7 +254,7 @@ while (<$inputBED>) {
     chomp();
     my @line = split(/\t/);
     my $dist = $line[2] - $line[1];
-    $wgdist+= $dist;
+    $wgdist += $dist;
 
     my $start = 0;
     my $fs    = 0;
@@ -301,14 +293,14 @@ while (<$inputBED>) {
         $d+=1; 
     }
 
-    for (my $i=$fs; $i <= $#mutations; $i ++){
-        my @mut=split(/\t/,$mutations[$i]);
-        my $type=assign_type($mut[4],$mut[5]);
-        if($mut[1] >= $line[1] && $mut[1] <= $line[2]){
-            $wgbmr{$type}+=1;
-        }elsif( $mut[1] > $line[2] ){
+    for (my $i = $fs; $i <= $#mutations; $i ++) {
+        my @mut  = split(/\t/, $mutations[$i]);
+        my $type = assign_type($mut[4], $mut[5]);
+        if ($mut[1] >= $line[1] && $mut[1] <= $line[2]) {
+            $wgbmr{$type} += 1;
+        } elsif ($mut[1] > $line[2]) {
             last; # if sorted array
-        }elsif( $mut[1] < $line[1] ){
+        } elsif ($mut[1] < $line[1]) {
             next;
         }
     }
@@ -316,12 +308,12 @@ while (<$inputBED>) {
 close($inputBED);
 print("Finished reading\n");
 
-my %nbmr=(); #mut within bmr regions
-my %cbmr=(); #bmr coverage
-my %nmut=(); #mut within test regions
-my %cmut=(); #test region coverage
-my %tmut=();
-my %nid=();
+my %nbmr = (); #mut within bmr regions
+my %cbmr = (); #bmr coverage
+my %nmut = (); #mut within test regions
+my %cmut = (); #test region coverage
+my %tmut = ();
+my %nid  = ();
 
 print("Reading C3D output\n");
 open($inputC3D, "<", $inputC3Dfile) or die "Could not open $inputC3Dfile!\n";
@@ -329,69 +321,64 @@ open($mutout, ">", $mutoutfile) or die "Could not open $mutoutfile\n";
 #_EXPLANATION_
 while (<$inputC3D>) {
     chomp();
-    my @line=split(/\t/);
+    my @line = split(/\t/);
 
-    if($line[0] eq "COORD_1"){
+    if ($line[0] eq "COORD_1") {
         next;
     }
-    if($line[2] eq "NA"){ # attempt to fix
+    if ($line[2] eq "NA") { # attempt to fix
         next;
     }
 
-    my @prox=split(/[:-]/,$line[0]);
-    my @dist=split(/[:-]/,$line[1]);
+    my @prox = split(/[:-]/, $line[0]);         # current gene of interest
+    my @dist = split(/[:-]/, $line[1]);         # distal region of comparison
+    my $gene = join(":", $line[0], $line[4]);   # gene region
 
-    my $gene=join(":",$line[0],$line[4]);
-
-    my $cov=$dist[2] - $dist[1];  
-
-    my $lwind=$prox[1] - $window;
-    my $uwind=$prox[2] + $window;   
+    my $coverage   = $dist[2] - $dist[1];
+    my @window_bounds = ($prox[1] - $window, $prox[2] + $window);  
     print $mutout "@dist\t$line[2]\n";
 
-    if(!exists $SiMES{$gene}){
-        $SiMES{$gene}=0;
+    if (!exists $SiMES{$gene}) {
+        $SiMES{$gene} = 0;
 
-        my %mtypes=(
-            ACTG => 0,
-            AGTC => 0,
-            ATTA => 0,
-            CAGT => 0,
-            CGGC => 0,
-            CTGA => 0,
+        my %mtypes = (
+            ACTG  => 0,
+            AGTC  => 0,
+            ATTA  => 0,
+            CAGT  => 0,
+            CGGC  => 0,
+            CTGA  => 0,
             OTHER => 0,
         );
-        my %btypes=(
-            ACTG => 0,
-            AGTC => 0,
-            ATTA => 0,
-            CAGT => 0,
-            CGGC => 0,
-            CTGA => 0,
+        my %btypes = (
+            ACTG  => 0,
+            AGTC  => 0,
+            ATTA  => 0,
+            CAGT  => 0,
+            CGGC  => 0,
+            CTGA  => 0,
             OTHER => 0,
         );
-        my $btype=\%btypes;
-        my $mtype=\%mtypes;
-        $nbmr{$gene}=$btype;
-        $nmut{$gene}=$mtype; 
+        $nbmr{$gene} = \%btypes;
+        $nmut{$gene} = \%mtypes; 
 
-        my $id=[];
-        $nid{$gene}=$id;
+        my $id = [];
+        $nid{$gene} = $id;
         print $mutout "\n\n---$gene---\n\n";
     }       
 
-    my $start=0;
-    my $fs=0;
-    my $fn=0;
+    my $start = 0;
+    my $fs    = 0;
+    my $fn    = 0;
 
-    for(my $i=0; $i<=$#chroms; $i++){
-        if($dist[0] eq $chroms[$i]){
-            if($i != $#chroms){
-                $fs=$starts[$i];
-                $fn=$starts[$i + 1];
-            }else{
-                $fs=$starts[$i];
-                $fn=$#mutations;
+    for (my $i = 0; $i <= $#chroms; $i++) {
+        if ($dist[0] eq $chroms[$i]) {
+            if ($i != $#chroms) {
+                $fs = $starts[$i];
+                $fn = $starts[$i + 1];
+            } else {
+                $fs = $starts[$i];
+                $fn = $#mutations;
             }
         }
     }
@@ -399,12 +386,12 @@ while (<$inputC3D>) {
     my $d = 0;
     my $t = 0;
     my $s = 10;
-    while( $d < $s ){
-        my @ps=split(/\t/,$mutations[$fs]);
-        my @pn=split(/\t/,$mutations[$fn]);
+    while ($d < $s) {
+        my @ps = split(/\t/, $mutations[$fs]);
+        my @pn = split(/\t/, $mutations[$fn]);
 
-        $t=int( (($fn + $fs)/ 2 )+0.5);    
-        my @pt=split(/\t/,$mutations[$t]);
+        $t = int( (($fn + $fs)/ 2) + 0.5);    
+        my @pt = split(/\t/, $mutations[$t]);
 
         if($dist[1] > $pt[1]){
             $fs=$t;
@@ -415,39 +402,40 @@ while (<$inputC3D>) {
         print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
     }
 
-    for (my $i=$fs; $i <= $fn; $i++){
-        my @mut=split(/\t/,$mutations[$i]);
-        my $type=assign_type($mut[4],$mut[5]);
-        if($dist[1] >= $lwind && $dist[2] <= $uwind){
-                if($mut[1] >= $dist[1] && $mut[1] <= $dist[2]){
-                if($line[2] >= $thres){
+    for (my $i=$fs; $i <= $fn; $i++) {
+        my @mut  = split(/\t/,$mutations[$i]);
+        my $type = assign_type($mut[4],$mut[5]);
+
+        if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
+            if ($mut[1] >= $dist[1] && $mut[1] <= $dist[2]) {
+                if ($line[2] >= $thres) {
                     #push(@{$nid{$gene}}, $mut[3]);
                     my %lnid = map { $_ => 1 } @{$nid{$gene}};
-                    if(!exists $lnid{$mut[3]}){   
+                    if (!exists $lnid{$mut[3]}) {   
                         print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST\n";
-                        $nmut{$gene}{$type}+=1;
+                        $nmut{$gene}{$type} += 1;
                         push(@{$nid{$gene}}, $mut[3]);
-                    }else{
+                    } else {
                         print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST_OMITTED\n";
                     }
-                }else{ 
+                } else {
                     print $mutout "@dist\t$line[2]\t$gene\t@mut\tlBMR\n";
-                    $nbmr{$gene}{$type}+=1;
+                    $nbmr{$gene}{$type} += 1;
                 }
-            }elsif( $mut[1] > $dist[2] ){
+            } elsif ($mut[1] > $dist[2]) {
                 last; # if sorted array
-            }elsif( $mut[1] < $dist[1] ){
+            } elsif ($mut[1] < $dist[1]) {
                 next;
             }
         }
     }
 
-    if($dist[1] >= $lwind && $dist[2] <= $uwind){
-        if($line[2] >= $thres){
-            $SiMES{$gene}+=1;
-            $cmut{$gene}+=$cov;
-        }else{
-            $cbmr{$gene}+=$cov;
+    if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
+        if ($line[2] >= $thres) {
+            $SiMES{$gene} += 1;
+            $cmut{$gene}  += $coverage;
+        } else {
+            $cbmr{$gene} += $coverage;
         }
     }
 }
@@ -517,27 +505,26 @@ print $output $header_line . "\n";
 
 #_EXPLANATION_
 print("Starting calculations\n");
-for my $gene (keys %nmut){
-    my @pvals=();
-    my @lpvals=();
-    my @occur=();
-    my @loccur=();
-    my @rate=();
-    my @lrate=();
+for my $gene (keys %nmut) {
+    my @pvals  = ();
+    my @lpvals = ();
+    my @occur  = ();
+    my @loccur = ();
+    my @rate   = ();
+    my @lrate  = ();
     my $bmr;
     my $lbmr;
     print $output "$gene\t";
     
-    for my $mtype ( sort keys %{$nmut{$gene}}){
-        #my $tmut=$nbmr{$gene}{$mtype} + $nmut{$gene}{$mtype};
-        #my $tcov=$cbmr{$gene} + $cmut{$gene};
+    for my $mtype (sort keys %{$nmut{$gene}}) {
         my $p;
         my $lp;
-        if(!defined $cmut{$gene}){
-            $cmut{$gene}=0;
+
+        if (!defined $cmut{$gene}) {
+            $cmut{$gene} = 0;
         }
-        if(!defined $cbmr{$gene}){
-            $cbmr{$gene}=0;
+        if (!defined $cbmr{$gene}) {
+            $cbmr{$gene} = 0;
         }
 
         my $bmr = 0;
@@ -553,37 +540,35 @@ for my $gene (keys %nmut){
             $lbmr = $bmr;
         }
         
-        if($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0){
-            $p=binomial($nmut{$gene}{$mtype},$cmut{$gene},$bmr);
-            $lp=binomial($nmut{$gene}{$mtype},$cmut{$gene},$lbmr);
-        }else{
-            $p="NA";
-            $lp="NA";
+        if ($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0) {
+            $p  = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $bmr);
+            $lp = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $lbmr);
+        } else {
+            $p  = "NA";
+            $lp = "NA";
         }
         
         print $output "$mtype\t$bmr\t$lbmr\t$cmut{$gene}\t$nmut{$gene}{$mtype}\t$p\t$lp\t";
-        if($nmut{$gene}{$mtype} > 0){
+        if ($nmut{$gene}{$mtype} > 0) {
             push(@pvals,$p);
             push(@lpvals,$lp);
         }
-        # print "PVALS=@pvals\n";
-        push(@occur,$nmut{$gene}{$mtype});
-        push(@rate,$bmr);
-        push(@lrate,$lbmr);
+        push(@occur, $nmut{$gene}{$mtype});
+        push(@rate, $bmr);
+        push(@lrate, $lbmr);
     }
 
     my $sg = 0;
     my $pcomb;
     my $lpcomb;
     
-    if(!@pvals){
-        $pcomb="NA";
-        $lpcomb="NA";
-    }else{
-        $pcomb=fisher_combine_pval(\@pvals);
-        $lpcomb=fisher_combine_pval(\@lpvals);
+    if (!@pvals) {
+        $pcomb  = "NA";
+        $lpcomb = "NA";
+    } else {
+        $pcomb  = fisher_combine_pval(\@pvals);
+        $lpcomb = fisher_combine_pval(\@lpvals);
     }
-    # print "\n**** $gene $pcomb $lpcomb\n\n";
     print $output "$pcomb\t$lpcomb\t$SiMES{$gene}\n";
 }
 close($output);

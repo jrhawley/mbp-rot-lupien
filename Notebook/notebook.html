@@ -84,8 +84,8 @@
                             </tr>
                         </tbody>
                     </table>
-                    <br>
 
+                    <br>
                     <div class="chip">2016-10-21</div>
                     <p>
                         I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
@@ -206,6 +206,8 @@ sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_muta
                     <pre><code>
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
                     </code></pre>
+                    
+                    <br>
                     <div class="chip">2016-10-28</div>
                     <p>
                         To filter out duplicate mutations, sort with the unique option:
@@ -349,6 +351,7 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                         Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (<em>i.e.</em> if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written <a href="files/split-c3d.pl">split-c3d.pl</a> to split up the C3D output and only look for regions relating to genes of interest. And using a modified <a href="files/run-MuSE.sh">run-MuSE.sh</a> file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
                     </p>
 
+                    <br>
                     <div class="chip">2016-11-03</div>
                     <p>
                         Calculations completed overnight, here's a summary of the genes, their size, and the runtimes.
@@ -411,6 +414,10 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                             </tr>
                         </tbody>
                     </table>
+
+                    <br>
+                    <div class="chip">2016-11-04</div>
+                    <p>I've worked on refactoring and parallelizing MuSE to make use of the cluster. I've updated it in this repo.</p>                    
                 </div>
             </div>
             <div class="col hide-on-small-only m3 l2">
