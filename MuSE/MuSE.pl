@@ -322,7 +322,7 @@ sub parse_reference {
 # Outputs:
 #   SiMES:              total # of each type of mutation within SRE
 #   nbmr:               # of mutations within BMR regions
-#   cmbr:               BMR coverage
+#   cbmr:               BMR coverage
 #   nmut:               # of mutations within test regions
 #   nid:                test region coverage
 sub parse_C3D {
@@ -474,13 +474,170 @@ sub parse_C3D {
     return(\%SiMES, \%nbmr, \%cbmr, \%nmut, \%cmut, \%nid);
 }
 
+# calculate
+# Description:
+#   Calculate mutations rates and p-values
+# Inputs:
+#   output_filename:    MuSE output file name
+#   wgdist:             distance of genome analyzed in reference BED (for calculating global mutation rates)
+#   wgbmr_ref:          pointer to %wgbmr
+#   SiMES_ref:          pointer to %SiMES
+#   nbmr_ref:           pointer to %nbmr
+#   cbmr_ref:           pointer to %cbmr
+#   nmut_ref:           pointer to %nmut
+#   cmut_ref:           pointer to %cmut
+#   nid_ref:            pointer to %nid
+# Outputs:
+#   None
+sub calculate {
+    my $output_filename = shift;
+    my $wgdist          = shift;
+    my $wgbmr_ref       = shift;
+    my %wgbmr           = %$wgbmr_ref;
+    my $SiMES_ref       = shift;
+    my %SiMES           = %$SiMES_ref;
+    my $nbmr_ref        = shift;
+    my %nbmr            = %$nbmr_ref;
+    my $cbmr_ref        = shift;
+    my %cbmr            = %$cbmr_ref;
+    my $nmut_ref        = shift;
+    my %nmut            = %$nmut_ref;
+    my $cmut_ref        = shift;
+    my %cmut            = %$cmut_ref;
+    my $nid_ref         = shift;
+    my %nid             = %$nid_ref;
+
+    my $header_line = join("\t",
+        "GENE",
+        "M_TYPE_1",
+        "M_TYPE_1_BMR",
+        "M_TYPE_1_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_1_N_MUT",
+        "M_TYPE_1_P",
+        "M_TYPE_1_P_LOCAL",
+        "M_TYPE_2",
+        "M_TYPE_2_BMR",
+        "M_TYPE_2_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_2_N_MUT",
+        "M_TYPE_2_P",
+        "M_TYPE_2_P_LOCAL",
+        "M_TYPE_3",
+        "M_TYPE_3_BMR",
+        "M_TYPE_3_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_3_N_MUT",
+        "M_TYPE_3_P",
+        "M_TYPE_3_P_LOCAL",
+        "M_TYPE_4",
+        "M_TYPE_4_BMR",
+        "M_TYPE_4_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_4_N_MUT",
+        "M_TYPE_4_P",
+        "M_TYPE_4_P_LOCAL",
+        "M_TYPE_5",
+        "M_TYPE_5_BMR",
+        "M_TYPE_5_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_5_N_MUT",
+        "M_TYPE_5_P",
+        "M_TYPE_5_P_LOCAL",
+        "M_TYPE_6",
+        "M_TYPE_6_BMR",
+        "M_TYPE_6_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_6_N_MUT",
+        "M_TYPE_6_P",
+        "M_TYPE_6_P_LOCAL",
+        "M_TYPE_7",
+        "M_TYPE_7_BMR",
+        "M_TYPE_7_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_7_N_MUT",
+        "M_TYPE_7_P",
+        "M_TYPE_7_P_LOCAL",
+        "FISHER_P",
+        "FISHER_P_LOCAL",
+        "N_DHS"
+    );
+    open(my $output, ">", $output_filename) or die "Could not open $output_filename\n";
+    print $output $header_line . "\n";
+
+    for my $gene (keys %nmut) {
+        my @pvals  = ();
+        my @lpvals = ();
+        my @occur  = ();
+        my @loccur = ();
+        my @rate   = ();
+        my @lrate  = ();
+        my $bmr;
+        my $lbmr;
+        print $output "$gene\t";
+        
+        for my $mtype (sort keys %{$nmut{$gene}}) {
+            my $p;
+            my $lp;
+
+            if (!defined $cmut{$gene}) {
+                $cmut{$gene} = 0;
+            }
+            if (!defined $cbmr{$gene}) {
+                $cbmr{$gene} = 0;
+            }
+
+            my $bmr = 0;
+            if (0 != $wgdist) {
+                $bmr = $wgbmr{$mtype}/$wgdist;
+            }
+            if ($cbmr{$gene} != 0) {
+                $lbmr = $nbmr{$gene}{$mtype}/$cbmr{$gene};
+                if ($lbmr == 0) { # get from all DHS sites
+                    $lbmr = $bmr;
+                }
+            } else {
+                $lbmr = $bmr;
+            }
+            
+            if ($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0) {
+                $p  = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $bmr);
+                $lp = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $lbmr);
+            } else {
+                $p  = "NA";
+                $lp = "NA";
+            }
+            
+            print $output "$mtype\t$bmr\t$lbmr\t$cmut{$gene}\t$nmut{$gene}{$mtype}\t$p\t$lp\t";
+            if ($nmut{$gene}{$mtype} > 0) {
+                push(@pvals,$p);
+                push(@lpvals,$lp);
+            }
+            push(@occur, $nmut{$gene}{$mtype});
+            push(@rate, $bmr);
+            push(@lrate, $lbmr);
+        }
+
+        my $sg = 0;
+        my $pcomb;
+        my $lpcomb;
+        
+        if (!@pvals) {
+            $pcomb  = "NA";
+            $lpcomb = "NA";
+        } else {
+            $pcomb  = fisher_combine_pval(\@pvals);
+            $lpcomb = fisher_combine_pval(\@lpvals);
+        }
+        print $output "$pcomb\t$lpcomb\t$SiMES{$gene}\n";
+    }
+    close($output);
+}
+
 ### Main ######################################################################
 parse_args();
 print("Runtime parameters:\n\t");
 print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
-
-my $output;
-
 
 # Parse mutations file
 print("Reading mutation file\n");
@@ -519,136 +676,10 @@ my %cmut  = %$cmut_ref;
 my %nid   = %$nid_ref;
 print("Finished reading\n");
 
-#header for output file
+print("Starting calculations\n");
 my $suffix_muse = "MUSE6";
 my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-open($output, ">", $output_file) or die "Could not open $output_file\n";
-my $header_line = join("\t",
-    "GENE",
-    "M_TYPE_1",
-    "M_TYPE_1_BMR",
-    "M_TYPE_1_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_1_N_MUT",
-    "M_TYPE_1_P",
-    "M_TYPE_1_P_LOCAL",
-    "M_TYPE_2",
-    "M_TYPE_2_BMR",
-    "M_TYPE_2_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_2_N_MUT",
-    "M_TYPE_2_P",
-    "M_TYPE_2_P_LOCAL",
-    "M_TYPE_3",
-    "M_TYPE_3_BMR",
-    "M_TYPE_3_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_3_N_MUT",
-    "M_TYPE_3_P",
-    "M_TYPE_3_P_LOCAL",
-    "M_TYPE_4",
-    "M_TYPE_4_BMR",
-    "M_TYPE_4_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_4_N_MUT",
-    "M_TYPE_4_P",
-    "M_TYPE_4_P_LOCAL",
-    "M_TYPE_5",
-    "M_TYPE_5_BMR",
-    "M_TYPE_5_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_5_N_MUT",
-    "M_TYPE_5_P",
-    "M_TYPE_5_P_LOCAL",
-    "M_TYPE_6",
-    "M_TYPE_6_BMR",
-    "M_TYPE_6_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_6_N_MUT",
-    "M_TYPE_6_P",
-    "M_TYPE_6_P_LOCAL",
-    "M_TYPE_7",
-    "M_TYPE_7_BMR",
-    "M_TYPE_7_BMR_LOCAL",
-    "SIME_LENGTH",
-    "M_TYPE_7_N_MUT",
-    "M_TYPE_7_P",
-    "M_TYPE_7_P_LOCAL",
-    "FISHER_P",
-    "FISHER_P_LOCAL",
-    "N_DHS"
-);
-print $output $header_line . "\n";
-
-#_EXPLANATION_
-print("Starting calculations\n");
-for my $gene (keys %nmut) {
-    my @pvals  = ();
-    my @lpvals = ();
-    my @occur  = ();
-    my @loccur = ();
-    my @rate   = ();
-    my @lrate  = ();
-    my $bmr;
-    my $lbmr;
-    print $output "$gene\t";
-    
-    for my $mtype (sort keys %{$nmut{$gene}}) {
-        my $p;
-        my $lp;
-
-        if (!defined $cmut{$gene}) {
-            $cmut{$gene} = 0;
-        }
-        if (!defined $cbmr{$gene}) {
-            $cbmr{$gene} = 0;
-        }
-
-        my $bmr = 0;
-        if (0 != $wgdist) {
-            $bmr = $wgbmr{$mtype}/$wgdist;
-        }
-        if ($cbmr{$gene} != 0) {
-            $lbmr = $nbmr{$gene}{$mtype}/$cbmr{$gene};
-            if ($lbmr == 0) { # get from all DHS sites
-                $lbmr = $bmr;
-            }
-        } else {
-            $lbmr = $bmr;
-        }
-        
-        if ($cmut{$gene} != 0 && $nmut{$gene}{$mtype} > 0) {
-            $p  = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $bmr);
-            $lp = binomial($nmut{$gene}{$mtype}, $cmut{$gene}, $lbmr);
-        } else {
-            $p  = "NA";
-            $lp = "NA";
-        }
-        
-        print $output "$mtype\t$bmr\t$lbmr\t$cmut{$gene}\t$nmut{$gene}{$mtype}\t$p\t$lp\t";
-        if ($nmut{$gene}{$mtype} > 0) {
-            push(@pvals,$p);
-            push(@lpvals,$lp);
-        }
-        push(@occur, $nmut{$gene}{$mtype});
-        push(@rate, $bmr);
-        push(@lrate, $lbmr);
-    }
-
-    my $sg = 0;
-    my $pcomb;
-    my $lpcomb;
-    
-    if (!@pvals) {
-        $pcomb  = "NA";
-        $lpcomb = "NA";
-    } else {
-        $pcomb  = fisher_combine_pval(\@pvals);
-        $lpcomb = fisher_combine_pval(\@lpvals);
-    }
-    print $output "$pcomb\t$lpcomb\t$SiMES{$gene}\n";
-}
-close($output);
+calculate($output_file, $wgdist, $wgbmr_ref, $SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref);
 print("Finished calculations\n");
 
 __END__
