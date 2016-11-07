@@ -14,11 +14,14 @@ my $help             = 0;
 my $inputMUTfile     = "";
 my $inputC3Dfile     = "";
 my $inputBEDfile     = "";
-my $window           = 0;   # Window size '-w' must be equal or smaller than the C3D window size used
+my $window           = 0;           # Window size '-w' must be equal or smaller than the C3D window size used
 my $thres            = 0;
 my $output_directory = "";
-my $cluster_opts     = "";  # options if using cluster
-my $parallel         = 0;   # local parallel calculations
+my $cluster_opts     = "";          # options if using cluster
+my $series           = 0;           # local calculations in series
+
+my $max_lines_split  = 50000;       # maximum number of lines for a single C3D split block
+my $tmp_prefix       = "tmpmuse";   # prefix for temporary MuSE files
 
 ### Subroutines ###############################################################
 # binomial
@@ -30,7 +33,7 @@ my $parallel         = 0;   # local parallel calculations
 #   p: observe or expected frequency in genomic DNA
 # Outputs:
 #   p_value: p-value resulting from binomial test
-sub binomial{
+sub binomial {
     my $x = shift;
     my $n = shift;
     my $p = shift;
@@ -59,7 +62,7 @@ sub binomial{
 #   pvals: array of p-values to be combined
 # Outputs:
 #   p_value: combined p-value
-sub fisher_combine_pval{
+sub fisher_combine_pval {
     #_COMMENT_: why not initially cast as array?
     my $pvals = shift;
     my $R = Statistics::R->new();
@@ -123,16 +126,16 @@ sub assign_type {
 #   parse command line input arguments
 sub parse_args {
     GetOptions(
-        'm|mutations=s' => \$inputMUTfile,
-        'c|c3d=s'       => \$inputC3Dfile,
-        'b|bed=s'       => \$inputBEDfile,
-        'w|window=i'    => \$window,
-        't|threshold=f' => \$thres,
-        'help|h'        => \$help,
-        'man'           => \$man,
-        'o|output:s'    => \$output_directory,
-        'q|cluster:s'   => \$cluster_opts,
-        'p|parallel'    => \$parallel
+        'm|mutations=s'    => \$inputMUTfile,
+        'c|c3d=s'          => \$inputC3Dfile,
+        'b|bed=s'          => \$inputBEDfile,
+        'w|window=i'       => \$window,
+        't|threshold=f'    => \$thres,
+        'help|h'           => \$help,
+        'man'              => \$man,
+        'o|output:s'       => \$output_directory,
+        'q|cluster-opts:s' => \$cluster_opts,
+        'l|series|linear'  => \$series
     ) or pod2usage(2);
     if ($help) {
         pod2usage(1);
@@ -472,7 +475,7 @@ sub parse_C3D {
     return(\%SiMES, \%nbmr, \%cbmr, \%nmut, \%cmut, \%nid);
 }
 
-# calculate
+# calculate_series
 # Description:
 #   Calculate mutations rates and p-values
 # Inputs:
@@ -487,7 +490,7 @@ sub parse_C3D {
 #   nid_ref:            pointer to %nid
 # Outputs:
 #   None
-sub calculate {
+sub calculate_series {
     my $output_filename = shift;
     my $wgdist          = shift;
     my $wgbmr_ref       = shift;
@@ -632,40 +635,108 @@ sub calculate {
     close($output);
 }
 
+# split_c3d
+# Description:
+#   Split C3D output file for cluster processing
+# Inputs:
+#   c3d_file:    original C3D file to split
+# Outputs:
+#   None
+sub split_c3d {
+    my $c3d_file = shift;
+    my $file_count = 1;
+    my $out_filename = join("_", $tmp_prefix, $c3d_file, $file_count);
+    my $out_current_region = "";
+    my $out_filelength = 0;
+
+    open(my $f_in, "<", $c3d_file) or die "Could not open $c3d_file!\n";
+    open(my $f_out, ">", $out_filename) or die "Could not open $out_filename";
+    while (<$f_in>) {
+        my $readline = $_;
+        my @splitline = split(/\t/);
+
+        # if onto new block in C3D file, and current file is longer than the max length
+        if (($splitline[0] ne $out_current_region) &&
+            ($out_filelength > $max_lines_split)) {
+            # close file and start new one
+            close($f_out);
+
+            $file_count        += 1;
+            $out_filename       = join("_", $tmp_prefix, $c3d_file, $file_count);
+            $out_current_region = $splitline[0];
+            $out_filelength     = 0;
+            open($f_out, ">", $out_filename) or die "Could not open $out_filename";
+        } elsif ($splitline[0] ne $out_current_region) {
+            $out_current_region = $splitline[0];
+        }
+
+        print $f_out $readline;
+        $out_filelength += 1;
+    }
+    close($f_in);
+    close($f_out);
+}
+
 ### Main ######################################################################
 parse_args();
 print("Runtime parameters:\n\t");
 print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
 
-# Parse mutations file
-print("Reading mutation file\n");
-my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
-print("Finished reading\n");
+if ($cluster_opts) {
+    # Split C3D file into parts
+    print("Splitting C3D file\n");
+    split_c3d($inputC3Dfile);
+    print("....Done\n");
 
-# Parse reference BED file
-print("Reading BED file\n");
-my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
-print("Finished reading\n");
+    # Submit jobs to cluster
+    # Collect job output files
+} else {
+    # Parse mutations file
+    print("Reading mutation file\n");
+    my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
+    print("....Done\n");
 
+    # Parse reference BED file
+    print("Reading BED file\n");
+    my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
+    print("....Done\n");
 
+    # Parse C3D file
+    print("Reading C3D output\n");
+    my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+        parse_C3D(
+            $inputC3Dfile,
+            $chroms_ref,
+            $starts_ref,
+            $mutations_ref,
+            $window,
+            $thres
+        );
+    print("....Done\n");
 
-print("Reading C3D output\n");
-my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
-    parse_C3D(
-        $inputC3Dfile,
-        $chroms_ref,
-        $starts_ref,
-        $mutations_ref,
-        $window,
-        $thres
-    );
-print("Finished reading\n");
+    # Run binomial hypothesis test calculations
+    print("Starting calculations\n");
+    my $suffix_muse = "MUSE6";
+    my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+    if (!$series) {
+        # Run parallel calculations
+    } else {
+        # Run series calculations
+        calculate_series(
+            $output_file,
+            $wgdist,
+            $wgbmr_ref,
+            $SiMES_ref,
+            $nbmr_ref,
+            $cbmr_ref,
+            $nmut_ref,
+            $cmut_ref,
+            $nid_ref
+        );
+        print("....Done\n");
+    }
+}
 
-print("Starting calculations\n");
-my $suffix_muse = "MUSE6";
-my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-calculate($output_file, $wgdist, $wgbmr_ref, $SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref);
-print("Finished calculations\n");
 
 __END__
 
@@ -678,7 +749,8 @@ MuSE: calculating significantly mutated regions
 perl MuSE.pl -m <mutations BED> -c <C3D output file> -b <DHS reference BED> -w <window> -t <threshold>
 
 Options:
-    -h, --help          Brief help message
-    --man               Man page with full documentation
-    -o, --output        Directory path for output files
-    -q, --cluster       Use cluster for faster processing
+    -h, --help              Brief help message
+    --man                   Man page with full documentation
+    -o, --output            Directory path for output files
+    -q, --cluster-opts      Use cluster for faster processing
+    -l, --linear, --series  Perform local calculations in series
