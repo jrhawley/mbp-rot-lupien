@@ -169,10 +169,8 @@ sub parse_args {
 #   mutation_file:  mutation file to be read
 # Outputs:
 #   mutations:      pointer to array for each line in mutations file
-#   landmarks:      pointer to hash containing points of interest on each chromosome
 #   starts:         pointer to array containing line numbers of starting positions
 #   chroms:         pointer to array containing chromosomes in use
-#   mutP:           pointer to hash containing mutation count categorized by mutation type
 sub parse_mutations {
     my $mutation_file = shift;
 
@@ -213,7 +211,7 @@ sub parse_mutations {
     }
     close($inputMUT);
 
-    return(\@mutations, \%landmarks, \@starts, \@chroms, \%mutP);
+    return(\@mutations, \@starts, \@chroms);
 }
 
 # parse_reference
@@ -641,19 +639,12 @@ print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)
 
 # Parse mutations file
 print("Reading mutation file\n");
-my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) =
-    parse_mutations($inputMUTfile);
-my @mutations = @$mutations_ref;
-my %landmarks = %$landmarks_ref;
-my @starts    = @$starts_ref;
-my @chroms    = @$chroms_ref;
-my %mutP      = %$mutP_ref;
+my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
 print("Finished reading\n");
 
 # Parse reference BED file
 print("Reading BED file\n");
 my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
-my %wgbmr = %$wgbmr_ref;
 print("Finished reading\n");
 
 
@@ -668,12 +659,6 @@ my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) =
         $window,
         $thres
     );
-my %SiMES = %$SiMES_ref;
-my %nbmr  = %$nbmr_ref;
-my %cbmr  = %$cbmr_ref;
-my %nmut  = %$nmut_ref;
-my %cmut  = %$cmut_ref;
-my %nid   = %$nid_ref;
 print("Finished reading\n");
 
 print("Starting calculations\n");
