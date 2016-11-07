@@ -170,11 +170,11 @@ sub parse_args {
 # Inputs:
 #   mutation_file:  mutation file to be read
 # Outputs:
-#   mutations:      array for each line in mutations file
-#   landmarks:      hash containing points of interest on each chromosome
-#   starts:         array containing line numbers of starting positions
-#   chroms:         array containing chromosomes in use
-#   mutP:           hash containing mutation count categorized by mutation type
+#   mutations:      pointer to array for each line in mutations file
+#   landmarks:      pointer to hash containing points of interest on each chromosome
+#   starts:         pointer to array containing line numbers of starting positions
+#   chroms:         pointer to array containing chromosomes in use
+#   mutP:           pointer to hash containing mutation count categorized by mutation type
 sub parse_mutations {
     my $mutation_file = shift;
 
@@ -218,6 +218,99 @@ sub parse_mutations {
     return(\@mutations, \%landmarks, \@starts, \@chroms, \%mutP);
 }
 
+# parse_reference
+# Description:
+#   Read reference BED file and store information
+# Inputs:
+#   reference_file:     reference BED file path
+#   chroms_ref:         pointer to @chroms
+#   starts_ref:         pointer to @starts 
+#   mutations_ref:      pointer to @mutations
+# Outputs:
+#   wgdist:             distance of genome analyzed in reference BED (for calculating global mutation rates)
+#   wgbmr:              pointer to hash containing whole genome background mutation rates by mutation type
+sub parse_reference {
+    my $reference_file = shift;
+    my $chroms_ref     = shift;
+    my @chroms         = @$chroms_ref;
+    my $starts_ref     = shift;
+    my @starts         = @$starts_ref;
+    my $mutations_ref  = shift;
+    my @mutations      = @$mutations_ref;
+
+    my $wgdist  = 0;
+    my %wgbmr = (
+        "ACTG"  => 0,
+        "AGTC"  => 0,
+        "ATTA"  => 0,
+        "CAGT"  => 0,
+        "CGGC"  => 0,
+        "CTGA"  => 0,
+        "OTHER" => 0,
+    );
+
+    open(my $inputBED, "<", $reference_file) or die "Could not open $reference_file!\n";
+    #_EXPLANATION_
+    while (<$inputBED>) {
+        chomp();
+        my @line = split(/\t/);
+        my $dist = $line[2] - $line[1];
+        $wgdist += $dist;
+
+        my $start = 0;
+        my $fs    = 0;
+        my $fn    = 0;
+
+        for (my $i = 0; $i <= $#chroms; $i++) {
+            if ($line[0] eq $chroms[$i]) {
+                if ($i != $#chroms) {
+                    $fs = $starts[$i];
+                    $fn = $starts[$i + 1];
+                } else {
+                    $fs = $starts[$i];
+                    $fn = $#mutations;
+                }
+            }
+        }
+
+        my $d = 0;
+        my $t = 0;
+        my $s = 10;
+        while ( $d < $s ) {
+            #_BAD_NAME_
+            my @ps = split(/\t/, $mutations[$fs]);
+            #_BAD_NAME_
+            my @pn = split(/\t/, $mutations[$fn]);
+            #_BAD_NAME_
+            $t = int( (($fn + $fs)/ 2 ) + 0.5);    
+            #_BAD_NAME_
+            my @pt = split(/\t/, $mutations[$t]);
+
+            if ($line[1] > $pt[1]) {
+                $fs = $t;
+            } elsif ($line[2] < $pt[1]) {
+                $fn = $t;
+            }
+            $d+=1; 
+        }
+
+        for (my $i = $fs; $i <= $#mutations; $i ++) {
+            my @mut  = split(/\t/, $mutations[$i]);
+            my $type = assign_type($mut[4], $mut[5]);
+            if ($mut[1] >= $line[1] && $mut[1] <= $line[2]) {
+                $wgbmr{$type} += 1;
+            } elsif ($mut[1] > $line[2]) {
+                last; # if sorted array
+            } elsif ($mut[1] < $line[1]) {
+                next;
+            }
+        }
+    }
+    close($inputBED);
+
+    return($wgdist, \%wgbmr);
+}
+
 ### Main ######################################################################
 parse_args();
 print("Runtime parameters:\n\t");
@@ -235,88 +328,14 @@ print("Reading mutation file\n");
 my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) = parse_mutations($inputMUTfile);
 my @mutations = @$mutations_ref;
 my %landmarks = %$landmarks_ref;
-my @starts = @$starts_ref;
-my @chroms = @$chroms_ref;
-my %mutP = %$mutP_ref;
+my @starts    = @$starts_ref;
+my @chroms    = @$chroms_ref;
+my %mutP      = %$mutP_ref;
 print("Finished reading\n");
 
-my %mgene   = ();
-my %migene  = ();
-my %mexon   = ();
-my $mg      = 0;
-my $mi      = 0;
-my %pmgene  = ();
-my %pmigene = ();
-my $wgdist  = 0;
-my %wgbmr = (
-    "ACTG"  => 0,
-    "AGTC"  => 0,
-    "ATTA"  => 0,
-    "CAGT"  => 0,
-    "CGGC"  => 0,
-    "CTGA"  => 0,
-    "OTHER" => 0,
-);
-
 print("Reading BED file\n");
-open(my $inputBED, "<", $inputBEDfile) or die "Could not open $inputBEDfile!\n";
-#_EXPLANATION_
-while (<$inputBED>) {
-    chomp();
-    my @line = split(/\t/);
-    my $dist = $line[2] - $line[1];
-    $wgdist += $dist;
-
-    my $start = 0;
-    my $fs    = 0;
-    my $fn    = 0;
-
-    for (my $i = 0; $i <= $#chroms; $i++) {
-        if ($line[0] eq $chroms[$i]) {
-            if ($i != $#chroms) {
-                $fs = $starts[$i];
-                $fn = $starts[$i + 1];
-            } else {
-                $fs = $starts[$i];
-                $fn = $#mutations;
-            }
-        }
-    }
-
-    my $d = 0;
-    my $t = 0;
-    my $s = 10;
-    while ( $d < $s ) {
-        #_BAD_NAME_
-        my @ps = split(/\t/, $mutations[$fs]);
-        #_BAD_NAME_
-        my @pn = split(/\t/, $mutations[$fn]);
-        #_BAD_NAME_
-        $t = int( (($fn + $fs)/ 2 ) + 0.5);    
-        #_BAD_NAME_
-        my @pt = split(/\t/, $mutations[$t]);
-
-        if ($line[1] > $pt[1]) {
-            $fs = $t;
-        } elsif ($line[2] < $pt[1]) {
-            $fn = $t;
-        }
-        $d+=1; 
-    }
-
-    for (my $i = $fs; $i <= $#mutations; $i ++) {
-        my @mut  = split(/\t/, $mutations[$i]);
-        my $type = assign_type($mut[4], $mut[5]);
-        if ($mut[1] >= $line[1] && $mut[1] <= $line[2]) {
-            $wgbmr{$type} += 1;
-        } elsif ($mut[1] > $line[2]) {
-            last; # if sorted array
-        } elsif ($mut[1] < $line[1]) {
-            next;
-        }
-    }
-}
-close($inputBED);
+my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
+my %wgbmr = %$wgbmr_ref;
 print("Finished reading\n");
 
 
@@ -325,7 +344,6 @@ my %nbmr  = ();  # mut within bmr regions
 my %cbmr  = ();  # bmr coverage
 my %nmut  = ();  # mut within test regions
 my %cmut  = ();  # test region coverage
-my %tmut  = ();
 my %nid   = ();
 
 print("Reading C3D output\n");
@@ -422,7 +440,6 @@ while (<$inputC3D>) {
         if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
             if ($mut[1] >= $dist[1] && $mut[1] <= $dist[2]) {
                 if ($line[2] >= $thres) {
-                    #push(@{$nid{$gene}}, $mut[3]);
                     my %lnid = map { $_ => 1 } @{$nid{$gene}};
                     if (!exists $lnid{$mut[3]}) {   
                         print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST\n";
