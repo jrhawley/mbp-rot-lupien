@@ -19,12 +19,8 @@ my $thres            = 0;
 my $suffix_muse      = "MUSE6";
 my $suffix_mut       = "MUT6";
 my $output_directory = "";
-my $use_cluster      = 0;
-
-# Mutation information
-my @mutations = ();
-my @chroms    = ();
-my @starts    = ();
+my $cluster_opts     = "";  # options if using cluster
+my $parallel         = 0;   # local parallel calculations
 
 ### Subroutines ###############################################################
 # binomial
@@ -137,7 +133,8 @@ sub parse_args {
         'help|h'        => \$help,
         'man'           => \$man,
         'o|output:s'    => \$output_directory,
-        'q|cluster'     => \$use_cluster
+        'q|cluster:s'   => \$cluster_opts,
+        'p|parallel'    => \$parallel
     ) or pod2usage(2);
     if ($help) {
         pod2usage(1);
@@ -167,6 +164,62 @@ sub parse_args {
     }) unless $thres;
 }
 
+# parse_mutations
+# Description:
+#   Read mutations file and store in hash structure
+# Inputs:
+#   mutation_file:  mutation file to be read
+# Outputs:
+#   mutations:      array for each line in mutations file
+#   landmarks:      hash containing points of interest on each chromosome
+#   starts:         array containing line numbers of starting positions
+#   chroms:         array containing chromosomes in use
+#   mutP:           hash containing mutation count categorized by mutation type
+sub parse_mutations {
+    my $mutation_file = shift;
+
+    my @mutations;
+    my @starts;
+    my @chroms;
+    my %landmarks = ();
+    my $n         = -1; # array position
+    my %mutP      = ();
+
+    print("Reading mutation file\n");
+    open(my $inputMUT, "<", $mutation_file) or die "Could not open $mutation_file!\n";
+    while (<$inputMUT>) {
+        chomp();
+        $n += 1;
+        push(@mutations, $_);
+
+        # extract information from mutations file
+        my @line = split(/\t/);
+        my $chr  = $line[0];
+        my $bp   = $line[2];
+        my $id   = $line[3];
+        my $A1   = $line[4];
+        my $A2   = $line[5];
+
+        # save locations of points of interest, and the chromosomes their on
+        if (!exists $landmarks{$chr}) {
+            $landmarks{$chr} = $n;
+            push(@starts, $n);
+            push(@chroms, $chr);
+        }  
+
+        # add to mutation count for that sample
+        if (!exists $mutP{$id}) {
+            $mutP{$id} = 1;
+        } else {
+            $mutP{$id} += 1;
+        }
+    }
+    close($inputMUT);
+    print("Finished reading\n");
+
+    return(\@mutations, \%landmarks, \@starts, \@chroms, \%mutP);
+}
+
 ### Main ######################################################################
 parse_args();
 print("Runtime parameters:\n\t");
@@ -179,43 +232,13 @@ my $mutout;
 my $mutoutfile = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
 
 
-### Parsing Mutations File ############
-my $n         = -1; # array position
-my %landmarks = ();
-my %mutP      = ();
-
-print("Reading mutation file\n");
-open(my $inputMUT, "<", $inputMUTfile) or die "Could not open $inputMUTfile!\n";
-while (<$inputMUT>) {
-    chomp();
-    $n += 1;
-    push(@mutations, $_);
-
-    # extract information from mutations file
-    my @line = split(/\t/);
-    my $chr  = $line[0];
-    my $bp   = $line[2];
-    my $id   = $line[3];
-    my $A1   = $line[4];
-    my $A2   = $line[5];
-
-    # save locations of points of interest, and the chromosomes their on
-    if (!exists $landmarks{$chr}) {
-        $landmarks{$chr} = $n;
-        push(@starts, $n);
-        push(@chroms, $chr);
-    }  
-
-    # add to mutation count for that sample
-    if (!exists $mutP{$id}) {
-        $mutP{$id} = 1;
-    } else {
-        $mutP{$id} += 1;
-    }
-}
-close($inputMUT);
-print("Finished reading\n");
-
+# parse mutations file
+my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) = parse_mutations($inputMUTfile);
+my @mutations = @$mutations_ref;
+my %landmarks = %$landmarks_ref;
+my @starts = @$starts_ref;
+my @chroms = @$chroms_ref;
+my %mutP = %$mutP_ref;
 
 my %mgene   = ();
 my %migene  = ();
