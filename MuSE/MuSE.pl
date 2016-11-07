@@ -16,8 +16,6 @@ my $inputC3Dfile     = "";
 my $inputBEDfile     = "";
 my $window           = 0;   # Window size '-w' must be equal or smaller than the C3D window size used
 my $thres            = 0;
-my $suffix_muse      = "MUSE6";
-my $suffix_mut       = "MUT6";
 my $output_directory = "";
 my $cluster_opts     = "";  # options if using cluster
 my $parallel         = 0;   # local parallel calculations
@@ -311,21 +309,183 @@ sub parse_reference {
     return($wgdist, \%wgbmr);
 }
 
+# parse_C3D
+# Description:
+#   Read C3D output file and store information
+# Inputs:
+#   c3d_file:           C3D output file path
+#   chroms_ref:         pointer to @chroms
+#   starts_ref:         pointer to @starts 
+#   mutations_ref:      pointer to @mutations
+#   window:             window to make bounds on either side of the gene
+#   threshold:          correlation threshold
+# Outputs:
+#   SiMES:              total # of each type of mutation within SRE
+#   nbmr:               # of mutations within BMR regions
+#   cmbr:               BMR coverage
+#   nmut:               # of mutations within test regions
+#   nid:                test region coverage
+sub parse_C3D {
+    my $c3d_file      = shift;
+    my $chroms_ref    = shift;
+    my @chroms        = @$chroms_ref;
+    my $starts_ref    = shift;
+    my @starts        = @$starts_ref;
+    my $mutations_ref = shift;
+    my @mutations     = @$mutations_ref;
+    my $window        = shift;
+    my $threshold     = shift;
+
+    my %SiMES = ();
+    my %nbmr  = ();
+    my %cbmr  = ();
+    my %nmut  = ();
+    my %cmut  = ();
+    my %nid   = ();
+
+    my $suffix_mut  = "MUT6";
+    my $mutout_file = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
+
+    open(my $inputC3D, "<", $c3d_file) or die "Could not open $c3d_file!\n";
+    open(my $mutout, ">", $mutout_file) or die "Could not open $mutout_file\n";
+    #_EXPLANATION_
+    while (<$inputC3D>) {
+        chomp();
+        my @line = split(/\t/);
+
+        if ($line[0] eq "COORD_1") {
+            next;
+        }
+        if ($line[2] eq "NA") { # attempt to fix
+            next;
+        }
+
+        my @prox          = split(/[:-]/, $line[0]);         # current gene of interest
+        my @dist          = split(/[:-]/, $line[1]);         # distal region of comparison
+        my $gene          = join(":", $line[0], $line[4]);   # gene region
+        my $coverage      = $dist[2] - $dist[1];
+        my @window_bounds = ($prox[1] - $window, $prox[2] + $window);  
+        
+        print $mutout "@dist\t$line[2]\n";
+
+        if (!exists $SiMES{$gene}) {
+            $SiMES{$gene} = 0;
+
+            my %mtypes = (
+                ACTG  => 0,
+                AGTC  => 0,
+                ATTA  => 0,
+                CAGT  => 0,
+                CGGC  => 0,
+                CTGA  => 0,
+                OTHER => 0,
+            );
+            my %btypes = (
+                ACTG  => 0,
+                AGTC  => 0,
+                ATTA  => 0,
+                CAGT  => 0,
+                CGGC  => 0,
+                CTGA  => 0,
+                OTHER => 0,
+            );
+            $nbmr{$gene} = \%btypes;
+            $nmut{$gene} = \%mtypes; 
+
+            my $id = [];
+            $nid{$gene} = $id;
+            print $mutout "\n\n---$gene---\n\n";
+        }       
+
+        my $start = 0;
+        my $fs    = 0;
+        my $fn    = 0;
+
+        for (my $i = 0; $i <= $#chroms; $i++) {
+            if ($dist[0] eq $chroms[$i]) {
+                if ($i != $#chroms) {
+                    $fs = $starts[$i];
+                    $fn = $starts[$i + 1];
+                } else {
+                    $fs = $starts[$i];
+                    $fn = $#mutations;
+                }
+            }
+        }
+
+        my $d = 0;
+        my $t = 0;
+        my $s = 10;
+        while ($d < $s) {
+            my @ps = split(/\t/, $mutations[$fs]);
+            my @pn = split(/\t/, $mutations[$fn]);
+
+            $t = int( (($fn + $fs)/ 2) + 0.5);    
+            my @pt = split(/\t/, $mutations[$t]);
+
+            if ($dist[1] > $pt[1]) {
+                $fs = $t;
+            } elsif ($dist[2] < $pt[1]) {
+                $fn = $t;
+            }
+            $d += 1;     
+            print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
+        }
+
+        for (my $i = $fs; $i <= $fn; $i++) {
+            my @mut  = split(/\t/,$mutations[$i]);
+            my $type = assign_type($mut[4],$mut[5]);
+
+            if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
+                if ($mut[1] >= $dist[1] && $mut[1] <= $dist[2]) {
+                    if ($line[2] >= $thres) {
+                        my %lnid = map { $_ => 1 } @{$nid{$gene}};
+                        if (!exists $lnid{$mut[3]}) {   
+                            print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST\n";
+                            $nmut{$gene}{$type} += 1;
+                            push(@{$nid{$gene}}, $mut[3]);
+                        } else {
+                            print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST_OMITTED\n";
+                        }
+                    } else {
+                        print $mutout "@dist\t$line[2]\t$gene\t@mut\tlBMR\n";
+                        $nbmr{$gene}{$type} += 1;
+                    }
+                } elsif ($mut[1] > $dist[2]) {
+                    last; # if sorted array
+                } elsif ($mut[1] < $dist[1]) {
+                    next;
+                }
+            }
+        }
+
+        if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
+            if ($line[2] >= $thres) {
+                $SiMES{$gene} += 1;
+                $cmut{$gene}  += $coverage;
+            } else {
+                $cbmr{$gene} += $coverage;
+            }
+        }
+    }
+    close($inputC3D);
+    close($mutout);
+
+    return(\%SiMES, \%nbmr, \%cbmr, \%nmut, \%cmut, \%nid);
+}
+
 ### Main ######################################################################
 parse_args();
 print("Runtime parameters:\n\t");
 print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
 
 my $output;
-my $outputfile = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-
-my $mutout;
-my $mutoutfile = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
 
 
-# parse mutations file
+# Parse mutations file
 print("Reading mutation file\n");
-my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) = parse_mutations($inputMUTfile);
+my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) =
+    parse_mutations($inputMUTfile);
 my @mutations = @$mutations_ref;
 my %landmarks = %$landmarks_ref;
 my @starts    = @$starts_ref;
@@ -333,149 +493,36 @@ my @chroms    = @$chroms_ref;
 my %mutP      = %$mutP_ref;
 print("Finished reading\n");
 
+# Parse reference BED file
 print("Reading BED file\n");
 my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
 my %wgbmr = %$wgbmr_ref;
 print("Finished reading\n");
 
 
-my %SiMES = ();  # Calculate the total number of each type of mutation and total within regulatory elements (C3D)
-my %nbmr  = ();  # mut within bmr regions
-my %cbmr  = ();  # bmr coverage
-my %nmut  = ();  # mut within test regions
-my %cmut  = ();  # test region coverage
-my %nid   = ();
 
 print("Reading C3D output\n");
-open(my $inputC3D, "<", $inputC3Dfile) or die "Could not open $inputC3Dfile!\n";
-open($mutout, ">", $mutoutfile) or die "Could not open $mutoutfile\n";
-#_EXPLANATION_
-while (<$inputC3D>) {
-    chomp();
-    my @line = split(/\t/);
-
-    if ($line[0] eq "COORD_1") {
-        next;
-    }
-    if ($line[2] eq "NA") { # attempt to fix
-        next;
-    }
-
-    my @prox = split(/[:-]/, $line[0]);         # current gene of interest
-    my @dist = split(/[:-]/, $line[1]);         # distal region of comparison
-    my $gene = join(":", $line[0], $line[4]);   # gene region
-
-    my $coverage   = $dist[2] - $dist[1];
-    my @window_bounds = ($prox[1] - $window, $prox[2] + $window);  
-    print $mutout "@dist\t$line[2]\n";
-
-    if (!exists $SiMES{$gene}) {
-        $SiMES{$gene} = 0;
-
-        my %mtypes = (
-            ACTG  => 0,
-            AGTC  => 0,
-            ATTA  => 0,
-            CAGT  => 0,
-            CGGC  => 0,
-            CTGA  => 0,
-            OTHER => 0,
-        );
-        my %btypes = (
-            ACTG  => 0,
-            AGTC  => 0,
-            ATTA  => 0,
-            CAGT  => 0,
-            CGGC  => 0,
-            CTGA  => 0,
-            OTHER => 0,
-        );
-        $nbmr{$gene} = \%btypes;
-        $nmut{$gene} = \%mtypes; 
-
-        my $id = [];
-        $nid{$gene} = $id;
-        print $mutout "\n\n---$gene---\n\n";
-    }       
-
-    my $start = 0;
-    my $fs    = 0;
-    my $fn    = 0;
-
-    for (my $i = 0; $i <= $#chroms; $i++) {
-        if ($dist[0] eq $chroms[$i]) {
-            if ($i != $#chroms) {
-                $fs = $starts[$i];
-                $fn = $starts[$i + 1];
-            } else {
-                $fs = $starts[$i];
-                $fn = $#mutations;
-            }
-        }
-    }
-
-    my $d = 0;
-    my $t = 0;
-    my $s = 10;
-    while ($d < $s) {
-        my @ps = split(/\t/, $mutations[$fs]);
-        my @pn = split(/\t/, $mutations[$fn]);
-
-        $t = int( (($fn + $fs)/ 2) + 0.5);    
-        my @pt = split(/\t/, $mutations[$t]);
-
-        if($dist[1] > $pt[1]){
-            $fs=$t;
-        }elsif($dist[2] < $pt[1]){
-            $fn=$t;
-        }
-        $d+=1;     
-        print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
-    }
-
-    for (my $i=$fs; $i <= $fn; $i++) {
-        my @mut  = split(/\t/,$mutations[$i]);
-        my $type = assign_type($mut[4],$mut[5]);
-
-        if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
-            if ($mut[1] >= $dist[1] && $mut[1] <= $dist[2]) {
-                if ($line[2] >= $thres) {
-                    my %lnid = map { $_ => 1 } @{$nid{$gene}};
-                    if (!exists $lnid{$mut[3]}) {   
-                        print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST\n";
-                        $nmut{$gene}{$type} += 1;
-                        push(@{$nid{$gene}}, $mut[3]);
-                    } else {
-                        print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST_OMITTED\n";
-                    }
-                } else {
-                    print $mutout "@dist\t$line[2]\t$gene\t@mut\tlBMR\n";
-                    $nbmr{$gene}{$type} += 1;
-                }
-            } elsif ($mut[1] > $dist[2]) {
-                last; # if sorted array
-            } elsif ($mut[1] < $dist[1]) {
-                next;
-            }
-        }
-    }
-
-    if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
-        if ($line[2] >= $thres) {
-            $SiMES{$gene} += 1;
-            $cmut{$gene}  += $coverage;
-        } else {
-            $cbmr{$gene} += $coverage;
-        }
-    }
-}
-close($inputC3D);
-close($mutout);
+my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+    parse_C3D(
+        $inputC3Dfile,
+        $chroms_ref,
+        $starts_ref,
+        $mutations_ref,
+        $window,
+        $thres
+    );
+my %SiMES = %$SiMES_ref;
+my %nbmr  = %$nbmr_ref;
+my %cbmr  = %$cbmr_ref;
+my %nmut  = %$nmut_ref;
+my %cmut  = %$cmut_ref;
+my %nid   = %$nid_ref;
 print("Finished reading\n");
 
 #header for output file
-#_COMMENT_: use join instead of \t all the time
-open($output, ">", $outputfile) or die "Could not open $outputfile\n";
+my $suffix_muse = "MUSE6";
+my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+open($output, ">", $output_file) or die "Could not open $output_file\n";
 my $header_line = join("\t",
     "GENE",
     "M_TYPE_1",
