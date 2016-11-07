@@ -185,7 +185,6 @@ sub parse_mutations {
     my $n         = -1; # array position
     my %mutP      = ();
 
-    print("Reading mutation file\n");
     open(my $inputMUT, "<", $mutation_file) or die "Could not open $mutation_file!\n";
     while (<$inputMUT>) {
         chomp();
@@ -215,7 +214,6 @@ sub parse_mutations {
         }
     }
     close($inputMUT);
-    print("Finished reading\n");
 
     return(\@mutations, \%landmarks, \@starts, \@chroms, \%mutP);
 }
@@ -233,12 +231,14 @@ my $mutoutfile = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
 
 
 # parse mutations file
+print("Reading mutation file\n");
 my ($mutations_ref, $landmarks_ref, $starts_ref, $chroms_ref, $mutP_ref) = parse_mutations($inputMUTfile);
 my @mutations = @$mutations_ref;
 my %landmarks = %$landmarks_ref;
 my @starts = @$starts_ref;
 my @chroms = @$chroms_ref;
 my %mutP = %$mutP_ref;
+print("Finished reading\n");
 
 my %mgene   = ();
 my %migene  = ();
