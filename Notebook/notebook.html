@@ -266,7 +266,7 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                                     It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region, I should be able to see something like from the Nature paper.
                                 </p>
                                 <p>
-                                    I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored (2016-11-03).</strong>
+                                    I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>2016-11-03: Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored.</strong>
                                 </p>
                                 <p>
                                     It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.
@@ -414,6 +414,9 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                             </tr>
                         </tbody>
                     </table>
+                    <p>
+                        <strong>2016-11-08:</strong> Looking back at this, this doesn't look quite right. The times seem very long, and the one jump up at <em>FOXA1</em> seems strange. So I think over the course of my cleanup some random issues have been fixed.
+                    </p>
 
                 </div>
                 <div id="muse-refactoring" class="section scrollspy">
@@ -425,7 +428,97 @@ Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIF
                     <figure>
                         <img class="responsive-img" src="files/MuSE-parallel-flowchart.svg" alt="MuSE parallel flowchart">
                     </figure>
-                    </div>
+
+                    <p>
+                        Mordor doesn't have the <code>Schedule::SGE</code> module installed by default, so I installed it locally via:
+                    </p>
+                    <pre><code>
+wget -O- http://cpanmin.us | perl - -l ~/perl5 App::cpanminus local::lib
+eval `perl -I ~/perl5/lib/perl5 -Mlocal::lib`
+echo 'export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB' >> ~/.bashrc
+echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
+                    </code></pre>
+                    <p>
+                        For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
+                    </p>
+
+                    <br>
+                    <div class="chip">2016-11-05</div>
+                    <p>
+                        With the most recently updated version of MuSE, with local parallel calculations working, here's a table comparing runtimes before and after parallelization.
+                    </p>
+                    <table class="responsive-table striped">
+                        <thead>
+                            <th>Gene</th>
+                            <th>C3D file size (lines)</th>
+                            <th>Series Runtime (mm:ss)</th>
+                            <th>Locally Parallel Runtime (mm:ss)</th>
+                            <th>Task Array Runtime (mm:ss)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><em>GATA3</em></td>
+                                <td>5804</td>
+                                <td>03:01</td>
+                                <td>03:08</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>FOXA1</em></td>
+                                <td>1754</td>
+                                <td>02:43</td>
+                                <td>03:04</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>ESR1</em></td>
+                                <td>5415</td>
+                                <td>02:57</td>
+                                <td>04:06</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>PGR (PR)</em></td>
+                                <td>417</td>
+                                <td>02:21</td>
+                                <td>02:35</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>ERBB2 (HER2)</em></td>
+                                <td>7216</td>
+                                <td>03:47</td>
+                                <td>03:59</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA1</em></td>
+                                <td>9806</td>
+                                <td>04:08</td>
+                                <td>05:32</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>BRCA2</em></td>
+                                <td>1213</td>
+                                <td>02:42</td>
+                                <td>02:23</td>
+                                <td>tbd</td>
+                            </tr>
+                            <tr>
+                                <td><em>TP53</em></td>
+                                <td>16999</td>
+                                <td>05:47</td>
+                                <td>05:45</td>
+                                <td>tbd</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p>
+                        Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files.
+                    </p>
+                </div>
             </div>
             <div class="col hide-on-small-only m3 l2">
                 <ul class="section table-of-contents pinned">
