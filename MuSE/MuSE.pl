@@ -20,12 +20,13 @@ my $inputBEDfile     = "";
 my $window           = 0;               # Window size '-w' must be equal or smaller than the C3D window size used
 my $thres            = 0;
 my $output_directory = "";
-my $cluster_opts     = "";              # options if using cluster
 my $series           = 0;               # local calculations in series
 
-my $max_lines_split  = 50000;           # maximum number of lines for a single C3D split block
-my $tmp_prefix       = "/tmp/tmpmuse";  # prefix for temporary MuSE files
-my @tmp_filelist     = [];
+my $max_lines_split  = 500;             # number of lines for a single C3D split block
+my $max_processes    = 20;
+my $tmp_prefix       = "tmpmuse";       # prefix for temporary MuSE files
+my @tmp_filelist     = ();
+my $suffix_muse      = "MUSE6";
 
 ### Subroutines ###############################################################
 # binomial
@@ -138,7 +139,6 @@ sub parse_args {
         'help|h'           => \$help,
         'man'              => \$man,
         'o|output:s'       => \$output_directory,
-        'q|cluster-opts:s' => \$cluster_opts,
         'l|series|linear'  => \$series
     ) or pod2usage(2);
     if ($help) {
@@ -349,7 +349,7 @@ sub parse_C3D {
     my %nid   = ();
 
     my $suffix_mut  = "MUT6";
-    my $mutout_file = join(".", $inputC3Dfile, $window, $thres, $suffix_mut);
+    my $mutout_file = join(".", $inputC3Dfile, $window, $thres, $suffix_mut); ###############
 
     open(my $inputC3D, "<", $c3d_file) or die "Could not open $c3d_file!\n";
     open(my $mutout, ">", $mutout_file) or die "Could not open $mutout_file\n";
@@ -570,16 +570,9 @@ sub calculate {
     );
     open(my $output, ">", $output_filename) or die "Could not open $output_filename\n";
     print $output $header_line . "\n";
-    if (!$series) {
-        $pm = new Parallel::ForkManager(0);
-        print("\tParallel\n");
-    }
 
     for my $gene (keys %nmut) {
         my $pid;
-        if (!$series) {
-            $pid = $pm->start and next;
-        }
         my @pvals  = ();
         my @lpvals = ();
         my @occur  = ();
@@ -631,13 +624,6 @@ sub calculate {
             push(@rate, $bmr);
             push(@lrate, $lbmr);
             
-            if (!$series) {
-                $pm->finish;
-            }
-        }
-
-        if (!$series) {
-            $pm->wait_all_children;
         }
 
         my $sg = 0;
@@ -670,7 +656,7 @@ sub split_c3d {
     my $out_filename = join("_", $tmp_prefix, $c3d_file, $file_count);
     my $out_current_region = "";
     my $out_filelength = 0;
-    my @file_list = [];
+    my @file_list = ();
 
     open(my $f_in, "<", $c3d_file) or die "Could not open $c3d_file!\n";
     open(my $f_out, ">", $out_filename) or die "Could not open $out_filename";
@@ -683,8 +669,8 @@ sub split_c3d {
             ($out_filelength > $max_lines_split)) {
             # close file and start new one
             close($f_out);
-            push(@tmp_filelist, $out_filename);
             push(@file_list, $out_filename);
+            push(@tmp_filelist, $out_filename);
 
             $file_count        += 1;
             $out_filename       = join("_", $tmp_prefix, $c3d_file, $file_count);
@@ -700,6 +686,7 @@ sub split_c3d {
     }
     close($f_in);
     close($f_out);
+    push(@file_list, $out_filename);
     push(@tmp_filelist, $out_filename);
     
     return($file_count, \@file_list);
@@ -711,32 +698,84 @@ parse_args();
 print("Runtime parameters:\n\t");
 print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
 
-if ($cluster_opts) {
+# Parse mutations file
+print("Reading mutation file\n");
+my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
+print("....Done\n");
+
+# Parse reference BED file
+print("Reading BED file\n");
+my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
+print("....Done\n");
+
+# Run in parallel (default)
+if (!$series) {
+    my $pm = Parallel::ForkManager->new($max_processes);
+    my @muse_filelist = ();
+
+    # need to run this so that temp files are properly pushed into arrays (this is just a function of how P:FM works)
+    $pm->run_on_finish(sub {
+        my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $result_ref) = @_;
+        push(@muse_filelist, $$result_ref);
+        push(@tmp_filelist, $$result_ref);
+    });
+
     # Split C3D file into parts
     print("Splitting C3D file\n");
     my ($file_count, $file_list_ref) = split_c3d($inputC3Dfile);
     print("....Done\n");
-    
-    # Collect job output files
 
-    # Cleanup temporary files
-    print("Cleaning up\n");
-    remove_tree(@tmp_filelist);
+    print("Parallel C3D reading and calculating\n");
+    foreach my $f (@$file_list_ref) {
+        my $pid = $pm->start() and next;
+
+        # Parse C3D file
+        my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+            parse_C3D(
+                $f,
+                $chroms_ref,
+                $starts_ref,
+                $mutations_ref,
+                $window,
+                $thres
+            );
+
+        # Run binomial hypothesis test calculations
+        my $output_file = join(".", $f, $window, $thres, $suffix_muse);
+        calculate(
+            $output_file,
+            $wgdist,
+            $wgbmr_ref,
+            $SiMES_ref,
+            $nbmr_ref,
+            $cbmr_ref,
+            $nmut_ref,
+            $cmut_ref,
+            $nid_ref
+        );
+
+        $pm->finish(0, \$output_file);
+    }
+    $pm->wait_all_children();
     print("....Done\n");
 
+    # Collect output into one file, after processing has finished
+    print("Collecting output\n");
+    my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+    open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
+    foreach my $f (@muse_filelist) {
+        open(my $f_in, "<", $f) or die "Could not open $f\n";
+        while (my $readline = <$f_in>) {
+            print $f_out $readline;
+        }
+        close($f_in);
+    }
+    close($f_out);
+    print("....Done\n");
+
+# Run in series
 } else {
-    # Parse mutations file
-    print("Reading mutation file\n");
-    my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
-    print("....Done\n");
-
-    # Parse reference BED file
-    print("Reading BED file\n");
-    my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
-    print("....Done\n");
-
     # Parse C3D file
-    print("Reading C3D output\n");
     my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
         parse_C3D(
             $inputC3Dfile,
@@ -746,13 +785,9 @@ if ($cluster_opts) {
             $window,
             $thres
         );
-    print("....Done\n");
 
     # Run binomial hypothesis test calculations
-    print("Starting calculations\n");
-    my $suffix_muse = "MUSE6";
     my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-    # Run calculations
     calculate(
         $output_file,
         $wgdist,
@@ -764,9 +799,12 @@ if ($cluster_opts) {
         $cmut_ref,
         $nid_ref
     );
-    print("....Done\n");
 }
 
+# Cleanup temporary files
+print("Cleaning up\n");
+remove_tree(@tmp_filelist);
+print("....Done\n");
 
 __END__
 
@@ -782,5 +820,4 @@ Options:
     -h, --help              Brief help message
     --man                   Man page with full documentation
     -o, --output            Directory path for output files
-    -q, --cluster-opts      Use cluster for faster processing
-    -l, --linear, --series  Perform local calculations in series
+    -l, --linear, --series  Perform local calculations in series (parallel by default)
