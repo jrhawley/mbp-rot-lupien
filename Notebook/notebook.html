@@ -441,6 +441,9 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
                     <p>
                         For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
                     </p>
+                    <p>
+                        <strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that chage. I might come back to using task arrays in the future, but it's not too important right now.
+                    </p>
 
                     <br>
                     <div class="chip">2016-11-05</div>
@@ -517,6 +520,11 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
 
                     <p>
                         Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files.
+                    </p>
+
+                    <div class="chip">2016-11-09</div>
+                    <p>
+                        I'm running my parallel version of MuSE on the entire dataset now: 7.6M lines from the C3D results, split into smaller files of ~10000 lines long, and split over 12 cores. If a single file takes ~5 min to run, this will be like running 65 files in series, so it should take around 5-6h, if this behaves exactly as I expect. Which is unlikely! 
                     </p>
                 </div>
             </div>
