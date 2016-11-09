@@ -22,8 +22,8 @@ my $thres            = 0;
 my $output_directory = "";
 my $series           = 0;               # local calculations in series
 
-my $max_lines_split  = 500;             # number of lines for a single C3D split block
-my $max_processes    = 20;
+my $max_lines_split  = 10000;           # number of lines for a single C3D split block
+my $max_processes    = 12;
 my $tmp_prefix       = "tmpmuse";       # prefix for temporary MuSE files
 my @tmp_filelist     = ();
 my $suffix_muse      = "MUSE6";
