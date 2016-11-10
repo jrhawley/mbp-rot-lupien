@@ -19,210 +19,210 @@
 </head>
 
 <body>
-    <article>
-        <div class="row">
-            <div class="col s12 m9 l10">
-                <h3>2016 Lab Notebook</h3>
-                <div id="project" class="section scrollspy">
-                    <h4>Project</h4>
-                    <div class="chip">2016-10-17</div>
-                    <p>
-                        <abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.
-                    </p>
-                    <p>
-                        This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.
-                    </p>
-                    <p>
-                        Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to  3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.
-                    </p>
-                    <p>
-                        Sven's paper used 98 <abbr title="Breast Cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.
-                    </p>
-                </div>
+<article>
+<div class="row">
+<div class="col s12 m9 l10">
+    <h3>2016 Lab Notebook</h3>
+    <div id="project" class="section scrollspy">
+        <h4>Project</h4>
+        <div class="chip">2016-10-17</div>
+        <p>
+            <abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin.
+        </p>
+        <p>
+            This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.
+        </p>
+        <p>
+            Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to  3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.
+        </p>
+        <p>
+            Sven's paper used 98 <abbr title="Breast Cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.
+        </p>
+    </div>
 
-                <div id="setup" class="section scrollspy">
-                    <h4>Setup</h4>
-                    <div class="chip">2016-10-17</div>
-                    <p>
-                        Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>).
-                    </p>
-                    <table class="responsive-table striped">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Location</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Original C3D</td>
-                                <td>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</td>
-                            </tr>
-                            <tr>
-                                <td>Original MuSE</td>
-                                <td>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</td>
-                            </tr>
-                            <tr>
-                                <td>Original Somatic Mutations (Sanger)</td>
-                                <td>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</td>
-                            </tr>
-                            <tr>
-                                <td>BCa DHS BigWigs</td>
-                                <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</td>
-                            </tr>
-                            <tr>
-                                <td>BCa DHS BedGraphs (converted from BigWig)</td>
-                                <td>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</td>
-                            </tr>
-                            <tr>
-                                <td>Genes List for Promoters</td>
-                                <td>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</td>
-                            </tr>
-                            <tr>
-                                <td>MCF-7 Cell Lines</td>
-                                <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
-                            </tr>
-                        </tbody>
-                    </table>
+    <div id="setup" class="section scrollspy">
+        <h4>Setup</h4>
+        <div class="chip">2016-10-17</div>
+        <p>
+            Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>).
+        </p>
+        <table class="responsive-table striped">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Original C3D</td>
+                    <td>/mnt/work1/users/lupiengroup/TahmidProject/C3D/</td>
+                </tr>
+                <tr>
+                    <td>Original MuSE</td>
+                    <td>/mnt/work1/users/lupiengroup/TahmidProject/MUSE/</td>
+                </tr>
+                <tr>
+                    <td>Original Somatic Mutations (Sanger)</td>
+                    <td>/mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/</td>
+                </tr>
+                <tr>
+                    <td>BCa DHS BigWigs</td>
+                    <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals</td>
+                </tr>
+                <tr>
+                    <td>BCa DHS BedGraphs (converted from BigWig)</td>
+                    <td>/mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/</td>
+                </tr>
+                <tr>
+                    <td>Genes List for Promoters</td>
+                    <td>/mnt/work1/users/lupiengroup/TahmidProject/genes.list</td>
+                </tr>
+                <tr>
+                    <td>MCF-7 Cell Lines</td>
+                    <td>/mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS</td>
+                </tr>
+            </tbody>
+        </table>
 
-                    <br>
-                    <div class="chip">2016-10-21</div>
-                    <p>
-                        I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
-                    </p>
-                    <pre><code>
+        <br>
+        <div class="chip">2016-10-21</div>
+        <p>
+            I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
+        </p>
+        <pre><code>
 sh make_anchors_from_genes.sh genes.list 2500 500 promoter_anchors.bed
 sort -k1,1 -k2,2n promoter_anchors.bed > promoter_anchors.sorted.bed                # sorted
 bedtools merge -i promoter_anchors.sorted.bed > promoter_anchors.merged.sorted.bed  # merge to reduce features
-                    </code></pre>
-                    <p>
-                        Then, after setting up the configuration file <a href="files/79_BCa_samples.cfg">79_BCa_samples.cfg</a>, I ran C3D:
-                    </p>
-                    <pre><code>
+        </code></pre>
+        <p>
+            Then, after setting up the configuration file <a href="files/79_BCa_samples.cfg">79_BCa_samples.cfg</a>, I ran C3D:
+        </p>
+        <pre><code>
 sh c3d_wrapper.sh 79_BCa_samples.cfg
-                    </code></pre>
+        </code></pre>
+    </div>
+
+    <div id="c3d-results" class="section scrollspy">
+        <h4>C3D Results</h4>
+        <div class="chip">2016-10-23</div>
+        <p>
+            Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.
+        </p>
+        <ul class="collapsible" data-collapsible="accordion">
+            <li>
+                <div class="collapsible-header materialize-red-text">
+                    <div class="chip">2016-10-24</div>
+                    Mistakes were made
                 </div>
+                <div class="collapsible-body">
+                    <p>
+                        Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.
+                    </p>
+                    <p>
+                        I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.
+                    </p>
+                    <p>
+                        To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.
+                    </p>
+                </div>
+            </li>
+        </ul>
+        <p>
+            It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.
+        </p>
 
-                <div id="c3d-results" class="section scrollspy">
-                    <h4>C3D Results</h4>
-                    <div class="chip">2016-10-23</div>
-                    <p>
-                        Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.
-                    </p>
-                    <ul class="collapsible" data-collapsible="accordion">
-                        <li>
-                            <div class="collapsible-header materialize-red-text">
-                                <div class="chip">2016-10-24</div>
-                                Mistakes were made
-                            </div>
-                            <div class="collapsible-body">
-                                <p>
-                                    Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.
-                                </p>
-                                <p>
-                                    I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.
-                                </p>
-                                <p>
-                                    To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
-                    <p>
-                        It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.
-                    </p>
+        <div class="chip">2016-10-25</div>
+        <p>
+            Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow.
+        </p>
 
-                    <div class="chip">2016-10-25</div>
-                    <p>
-                        Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow.
-                    </p>
-
-                    <div class="chip">2016-10-26</div>
-                    <p>
-                        This finally worked. I copied all the resulting files into <code>20161026_C3D</code>, and formatted the files for input to MuSE via (replace <code>$i</code> with each number):
-                    </p>
-                    <pre><code>
+        <div class="chip">2016-10-26</div>
+        <p>
+            This finally worked. I copied all the resulting files into <code>20161026_C3D</code>, and formatted the files for input to MuSE via (replace <code>$i</code> with each number):
+        </p>
+        <pre><code>
 cat results_$i.txt | awk -v OFS='\t' '{if (NR!=1) {print $1, $4, $7, $7, $8}}' > results_$i.formatted.txt
 cat results_*.formatted.txt >> results_all.txt
-                    </code></pre>
-                </div>
+        </code></pre>
+    </div>
 
-                <div id="c3d-recommendations" class="section scrollspy">
-                    <h4>C3D Recommendations</h4>
-                    <p>
-                        C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:
-                    </p>
-                    <ol>
-                        <li>No config file</li>
-                        <ol>
-                            <li>Making config files and running scripts can get messy, since it requires writing to a config file
-                                every time you want to run the script</li>
-                            <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
-                        </ol>
-                        <li>Using getopt/standard argparsing</li>
-                        <ol>
-                            <li>Will make it easier to parse arguments without the need for a config file</li>
-                            <li>Lessen chance of making mistakes when running</li>
-                        </ol>
-                        <li>Rewrite in Python or Perl</li>
-                        <ol>
-                            <li>Bash is useful, but not as readable or supported for many of these things</li>
-                            <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
-                            <li>Calculations, command line, and parallelization are easily supported in these languages</li>
-                        </ol>
-                        <li>Parallelization</li>
-                        <ol>
-                            <li>These scripts take a long time to run</li>
-                            <li>Using perl or python packages to parallelize computations will significantly speed up processing
-                                time
-                            </li>
-                        </ol>
-                        <li>Check files and folders before executing</li>
-                        <ol>
-                            <li>Nothing sucks more than having your script run for a few hours just to have it crash because you
-                                forgot to check that a directory or file existed</li>
-                        </ol>
-                        <li>Comments</li>
-                        <ol>
-                            <li>Please put comments all over the place in the code</li>
-                            <li>Takes a lot of time to understand what's going on without them</li>
-                            <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
-                        </ol>
-                    </ol>
-                </div>
+    <div id="c3d-recommendations" class="section scrollspy">
+        <h4>C3D Recommendations</h4>
+        <p>
+            C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:
+        </p>
+        <ol>
+            <li>No config file</li>
+            <ol>
+                <li>Making config files and running scripts can get messy, since it requires writing to a config file
+                    every time you want to run the script</li>
+                <li>Using command line args is likely a better way to implement this, especially for making a pipeline</li>
+            </ol>
+            <li>Using getopt/standard argparsing</li>
+            <ol>
+                <li>Will make it easier to parse arguments without the need for a config file</li>
+                <li>Lessen chance of making mistakes when running</li>
+            </ol>
+            <li>Rewrite in Python or Perl</li>
+            <ol>
+                <li>Bash is useful, but not as readable or supported for many of these things</li>
+                <li>MuSE already uses perl, so it would be easier to make this an entire library</li>
+                <li>Calculations, command line, and parallelization are easily supported in these languages</li>
+            </ol>
+            <li>Parallelization</li>
+            <ol>
+                <li>These scripts take a long time to run</li>
+                <li>Using perl or python packages to parallelize computations will significantly speed up processing
+                    time
+                </li>
+            </ol>
+            <li>Check files and folders before executing</li>
+            <ol>
+                <li>Nothing sucks more than having your script run for a few hours just to have it crash because you
+                    forgot to check that a directory or file existed</li>
+            </ol>
+            <li>Comments</li>
+            <ol>
+                <li>Please put comments all over the place in the code</li>
+                <li>Takes a lot of time to understand what's going on without them</li>
+                <li>"You will spend much more time looking at and reviewing your code than you will writing it"</li>
+            </ol>
+        </ol>
+    </div>
 
-                <div id="running-muse" class="section scrollspy">
-                    <h4>Running MuSE</h4>
-                    <div class="chip">2016-10-27</div>
-                    <p>
-                        Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:
-                    </p>
-                    <pre><code>
+    <div id="running-muse" class="section scrollspy">
+        <h4>Running MuSE</h4>
+        <div class="chip">2016-10-27</div>
+        <p>
+            Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:
+        </p>
+        <pre><code>
 # collect the appropriate columns, prepend "chr" to chromosome column, remove headers
 zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; if (NR != 1) {print $9, $10, $11, $7, $16, $17}}' > simple_somatic_mutation.open.BRCA-EU.bed
 # sort BED file
 sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
-                    </code></pre>
-                    <p>
-                        I've then run MuSE as follows:
-                    </p>
-                    <pre><code>
+        </code></pre>
+        <p>
+            I've then run MuSE as follows:
+        </p>
+        <pre><code>
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
-                    </code></pre>
-                    
-                    <br>
-                    <div class="chip">2016-10-28</div>
-                    <p>
-                        To filter out duplicate mutations, sort with the unique option:
-                    </p>
-                    <pre><code>
+        </code></pre>
+        
+        <br>
+        <div class="chip">2016-10-28</div>
+        <p>
+            To filter out duplicate mutations, sort with the unique option:
+        </p>
+        <pre><code>
 sort -u -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
-                    </code></pre>
-                    <p>
-                        I'm getting a lot of errors running this. I'm still getting output, but I don't know what these errors entail, so I want to track them down before I do a complete run again, since they took a few hours (3 for the non-unique, and 4.5 for the unique mutation files). I'm getting errors like:
-                    </p>
-                    <pre><code>
+        </code></pre>
+        <p>
+            I'm getting a lot of errors running this. I'm still getting output, but I don't know what these errors entail, so I want to track them down before I do a complete run again, since they took a few hours (3 for the non-unique, and 4.5 for the unique mutation files). I'm getting errors like:
+        </p>
+        <pre><code>
 Argument "237723-237851" isn't numeric in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
 Use of uninitialized value in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
 Argument "521469-521617" isn't numeric in subtraction (-) at MuSE-1.6.pl line 341, <$inputIFC> line 1.
@@ -240,308 +240,308 @@ Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC
 Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 414, <$inputIFC> line 1.
 Use of uninitialized value in numeric gt (>) at MuSE-1.6.pl line 430, <$inputIFC> line 1.
 Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIFC> line 1.
-                    </code></pre>
-                    <p>
-                        I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.
-                    </p>
-                    <p>
-                        I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.
-                    </p>
-                    <ul class="collapsible" data-collapsible="expandable">
-                        <li>
-                            <div class="collapsible-header materialize-red-text">
-                                <div class="chip">2016-10-31</div>
-                                Divide by 0 errors
-                            </div>
-                            <div class="collapsible-body">
-                                <p>
-                                    After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.
-                                </p>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="collapsible-header materialize-red-text">
-                                <div class="chip">2016-10-31</div>
-                                Intractible calculations
-                            </div>
-                            <div class="collapsible-body">
-                                <p>
-                                    It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region, I should be able to see something like from the Nature paper.
-                                </p>
-                                <p>
-                                    I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>2016-11-03: Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored.</strong>
-                                </p>
-                                <p>
-                                    It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
+        </code></pre>
+        <p>
+            I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.
+        </p>
+        <p>
+            I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.
+        </p>
+        <ul class="collapsible" data-collapsible="expandable">
+            <li>
+                <div class="collapsible-header materialize-red-text">
+                    <div class="chip">2016-10-31</div>
+                    Divide by 0 errors
                 </div>
-
-                <div id="muse-specific" class="section scrollspy">
-                    <h4>MuSE on specific genes of interest</h4>
-                    <div class="chip">2016-11-02</div>
+                <div class="collapsible-body">
                     <p>
-                        I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
+                        After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.
                     </p>
-                    <p>
-                        I've run MuSE with the full somatic mutations file and 10 lines of the C3D output, to test how long it takes. It took ~3 min to run the 10 lines. So I'll need to figure out tomorrow how many files I should split <code>results_all.formatted.txt</code> into.
-                    </p>
-                    <p>
-                        Following Sven's advice, before I start working on parallelizing MuSE, I'm going to run it on a select list of genes. I'm using <code>/mnt/work1/users/lupiengroup/Paul/resources/gencodev19.txt</code> as a reference for gene regions, and I'll be taking those regions from the C3D output, to use as smaller output files for MuSE to read. While those are running, I'll work on making the calculations parallelized. My list of genes and regions is in the table below.
-                    </p>
-                    <table class="responsive-table striped">
-                        <thead>
-                            <th>Gene</th>
-                            <th>Chrom</th>
-                            <th>Start</th>
-                            <th>End</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><em>GATA3</em></td>
-                                <td>chr10</td>
-                                <td>8095566</td>
-                                <td>8116027</td>
-                            </tr>
-                            <tr>
-                                <td><em>FOXA1</em></td>
-                                <td>chr14</td>
-                                <td>38059188</td>
-                                <td>38065264</td>
-                            </tr>
-                            <tr>
-                                <td><em>ESR1</em></td>
-                                <td>chr6</td>
-                                <td>151977825</td>
-                                <td>152305300</td>
-                            </tr>
-                            <tr>
-                                <td><em>PGR (PR)</em></td>
-                                <td>chr11</td>
-                                <td>100900354</td>
-                                <td>100922201</td>
-                            </tr>
-                            <tr>
-                                <td><em>ERBB2 (HER2)</em></td>
-                                <td>chr17</td>
-                                <td>37844166</td>
-                                <td>37886679</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA1</em></td>
-                                <td>chr17</td>
-                                <td>41196311</td>
-                                <td>41277338</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA2</em></td>
-                                <td>chr13</td>
-                                <td>32889610</td>
-                                <td>32972585</td>
-                            </tr>
-                            <tr>
-                                <td><em>TP53</em></td>
-                                <td>chr17</td>
-                                <td>7565096</td>
-                                <td>7590745</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <p>
-                        Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (<em>i.e.</em> if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written <a href="files/split-c3d.pl">split-c3d.pl</a> to split up the C3D output and only look for regions relating to genes of interest. And using a modified <a href="files/run-MuSE.sh">run-MuSE.sh</a> file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
-                    </p>
-
-                    <br>
-                    <div class="chip">2016-11-03</div>
-                    <p>
-                        Calculations completed overnight, here's a summary of the genes, their size, and the runtimes.
-                    </p>
-                    <table class="responsive-table striped">
-                        <thead>
-                            <th>Gene</th>
-                            <th>C3D file size (lines)</th>
-                            <th>MuSE file size (lines)</th>
-                            <th>Runtime (mm:ss)</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><em>GATA3</em></td>
-                                <td>5804</td>
-                                <td>26</td>
-                                <td>05:20</td>
-                            </tr>
-                            <tr>
-                                <td><em>FOXA1</em></td>
-                                <td>1754</td>
-                                <td>14</td>
-                                <td>35:44</td>
-                            </tr>
-                            <tr>
-                                <td><em>ESR1</em></td>
-                                <td>5415</td>
-                                <td>32</td>
-                                <td>03:40</td>
-                            </tr>
-                            <tr>
-                                <td><em>PGR (PR)</em></td>
-                                <td>417</td>
-                                <td>7</td>
-                                <td>03:00</td>
-                            </tr>
-                            <tr>
-                                <td><em>ERBB2 (HER2)</em></td>
-                                <td>7216</td>
-                                <td>59</td>
-                                <td>05:45</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA1</em></td>
-                                <td>9806</td>
-                                <td>69</td>
-                                <td>07:30</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA2</em></td>
-                                <td>1213</td>
-                                <td>13</td>
-                                <td>03:47</td>
-                            </tr>
-                            <tr>
-                                <td><em>TP53</em></td>
-                                <td>16999</td>
-                                <td>111</td>
-                                <td>10:51</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p>
-                        <strong>2016-11-08:</strong> Looking back at this, this doesn't look quite right. The times seem very long, and the one jump up at <em>FOXA1</em> seems strange. So I think over the course of my cleanup some random issues have been fixed.
-                    </p>
-
                 </div>
-                <div id="muse-refactoring" class="section scrollspy">
-                    <h4>Refactoring and Parallelizing MuSE</h4>
-                    <div class="chip">2016-11-04</div>
+            </li>
+            <li>
+                <div class="collapsible-header materialize-red-text">
+                    <div class="chip">2016-10-31</div>
+                    Intractible calculations
+                </div>
+                <div class="collapsible-body">
                     <p>
-                        I've worked on refactoring and parallelizing MuSE to make use of the cluster. I've updated it in this repo. Below is a flowchart for how MuSE runs.
+                        It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region, I should be able to see something like from the Nature paper.
                     </p>
-                    <figure>
-                        <img class="responsive-img" src="files/MuSE-parallel-flowchart.svg" alt="MuSE parallel flowchart">
-                    </figure>
+                    <p>
+                        I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>2016-11-03: Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored.</strong>
+                    </p>
+                    <p>
+                        It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, $O($weeks$)$, for them to finish running.
+                    </p>
+                </div>
+            </li>
+        </ul>
+    </div>
 
-                    <p>
-                        Mordor doesn't have the <code>Schedule::SGE</code> module installed by default, so I installed it locally via:
-                    </p>
-                    <pre><code>
+    <div id="muse-specific" class="section scrollspy">
+        <h4>MuSE on specific genes of interest</h4>
+        <div class="chip">2016-11-02</div>
+        <p>
+            I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
+        </p>
+        <p>
+            I've run MuSE with the full somatic mutations file and 10 lines of the C3D output, to test how long it takes. It took ~3 min to run the 10 lines. So I'll need to figure out tomorrow how many files I should split <code>results_all.formatted.txt</code> into.
+        </p>
+        <p>
+            Following Sven's advice, before I start working on parallelizing MuSE, I'm going to run it on a select list of genes. I'm using <code>/mnt/work1/users/lupiengroup/Paul/resources/gencodev19.txt</code> as a reference for gene regions, and I'll be taking those regions from the C3D output, to use as smaller output files for MuSE to read. While those are running, I'll work on making the calculations parallelized. My list of genes and regions is in the table below.
+        </p>
+        <table class="responsive-table striped">
+            <thead>
+                <th>Gene</th>
+                <th>Chrom</th>
+                <th>Start</th>
+                <th>End</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><em>GATA3</em></td>
+                    <td>chr10</td>
+                    <td>8095566</td>
+                    <td>8116027</td>
+                </tr>
+                <tr>
+                    <td><em>FOXA1</em></td>
+                    <td>chr14</td>
+                    <td>38059188</td>
+                    <td>38065264</td>
+                </tr>
+                <tr>
+                    <td><em>ESR1</em></td>
+                    <td>chr6</td>
+                    <td>151977825</td>
+                    <td>152305300</td>
+                </tr>
+                <tr>
+                    <td><em>PGR (PR)</em></td>
+                    <td>chr11</td>
+                    <td>100900354</td>
+                    <td>100922201</td>
+                </tr>
+                <tr>
+                    <td><em>ERBB2 (HER2)</em></td>
+                    <td>chr17</td>
+                    <td>37844166</td>
+                    <td>37886679</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA1</em></td>
+                    <td>chr17</td>
+                    <td>41196311</td>
+                    <td>41277338</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA2</em></td>
+                    <td>chr13</td>
+                    <td>32889610</td>
+                    <td>32972585</td>
+                </tr>
+                <tr>
+                    <td><em>TP53</em></td>
+                    <td>chr17</td>
+                    <td>7565096</td>
+                    <td>7590745</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (<em>i.e.</em> if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written <a href="files/split-c3d.pl">split-c3d.pl</a> to split up the C3D output and only look for regions relating to genes of interest. And using a modified <a href="files/run-MuSE.sh">run-MuSE.sh</a> file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
+        </p>
+
+        <br>
+        <div class="chip">2016-11-03</div>
+        <p>
+            Calculations completed overnight, here's a summary of the genes, their size, and the runtimes.
+        </p>
+        <table class="responsive-table striped">
+            <thead>
+                <th>Gene</th>
+                <th>C3D file size (lines)</th>
+                <th>MuSE file size (lines)</th>
+                <th>Runtime (mm:ss)</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><em>GATA3</em></td>
+                    <td>5804</td>
+                    <td>26</td>
+                    <td>05:20</td>
+                </tr>
+                <tr>
+                    <td><em>FOXA1</em></td>
+                    <td>1754</td>
+                    <td>14</td>
+                    <td>35:44</td>
+                </tr>
+                <tr>
+                    <td><em>ESR1</em></td>
+                    <td>5415</td>
+                    <td>32</td>
+                    <td>03:40</td>
+                </tr>
+                <tr>
+                    <td><em>PGR (PR)</em></td>
+                    <td>417</td>
+                    <td>7</td>
+                    <td>03:00</td>
+                </tr>
+                <tr>
+                    <td><em>ERBB2 (HER2)</em></td>
+                    <td>7216</td>
+                    <td>59</td>
+                    <td>05:45</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA1</em></td>
+                    <td>9806</td>
+                    <td>69</td>
+                    <td>07:30</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA2</em></td>
+                    <td>1213</td>
+                    <td>13</td>
+                    <td>03:47</td>
+                </tr>
+                <tr>
+                    <td><em>TP53</em></td>
+                    <td>16999</td>
+                    <td>111</td>
+                    <td>10:51</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>
+            <strong>2016-11-08:</strong> Looking back at this, this doesn't look quite right. The times seem very long, and the one jump up at <em>FOXA1</em> seems strange. So I think over the course of my cleanup some random issues have been fixed.
+        </p>
+
+    </div>
+    <div id="muse-refactoring" class="section scrollspy">
+        <h4>Refactoring and Parallelizing MuSE</h4>
+        <div class="chip">2016-11-04</div>
+        <p>
+            I've worked on refactoring and parallelizing MuSE to make use of the cluster. I've updated it in this repo. Below is a flowchart for how MuSE runs.
+        </p>
+        <figure>
+            <img class="responsive-img" src="files/MuSE-parallel-flowchart.svg" alt="MuSE parallel flowchart">
+        </figure>
+
+        <p>
+            Mordor doesn't have the <code>Schedule::SGE</code> module installed by default, so I installed it locally via:
+        </p>
+        <pre><code>
 wget -O- http://cpanmin.us | perl - -l ~/perl5 App::cpanminus local::lib
 eval `perl -I ~/perl5/lib/perl5 -Mlocal::lib`
 echo 'export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB' >> ~/.bashrc
 echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
-                    </code></pre>
-                    <p>
-                        For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
-                    </p>
-                    <p>
-                        <strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that chage. I might come back to using task arrays in the future, but it's not too important right now.
-                    </p>
+        </code></pre>
+        <p>
+            For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
+        </p>
+        <p>
+            <strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that chage. I might come back to using task arrays in the future, but it's not too important right now.
+        </p>
 
-                    <br>
-                    <div class="chip">2016-11-05</div>
-                    <p>
-                        With the most recently updated version of MuSE, with local parallel calculations working, here's a table comparing runtimes before and after parallelization.
-                    </p>
-                    <table class="responsive-table striped">
-                        <thead>
-                            <th>Gene</th>
-                            <th>C3D file size (lines)</th>
-                            <th>Series Runtime (mm:ss)</th>
-                            <th>Locally Parallel Runtime (mm:ss)</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><em>GATA3</em></td>
-                                <td>5804</td>
-                                <td>03:01</td>
-                                <td>03:08</td>
-                            </tr>
-                            <tr>
-                                <td><em>FOXA1</em></td>
-                                <td>1754</td>
-                                <td>02:43</td>
-                                <td>03:04</td>
-                            </tr>
-                            <tr>
-                                <td><em>ESR1</em></td>
-                                <td>5415</td>
-                                <td>02:57</td>
-                                <td>04:06</td>
-                            </tr>
-                            <tr>
-                                <td><em>PGR (PR)</em></td>
-                                <td>417</td>
-                                <td>02:21</td>
-                                <td>02:35</td>
-                            </tr>
-                            <tr>
-                                <td><em>ERBB2 (HER2)</em></td>
-                                <td>7216</td>
-                                <td>03:47</td>
-                                <td>03:59</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA1</em></td>
-                                <td>9806</td>
-                                <td>04:08</td>
-                                <td>05:32</td>
-                            </tr>
-                            <tr>
-                                <td><em>BRCA2</em></td>
-                                <td>1213</td>
-                                <td>02:42</td>
-                                <td>02:23</td>
-                            </tr>
-                            <tr>
-                                <td><em>TP53</em></td>
-                                <td>16999</td>
-                                <td>05:47</td>
-                                <td>05:45</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <br>
+        <div class="chip">2016-11-05</div>
+        <p>
+            With the most recently updated version of MuSE, with local parallel calculations working, here's a table comparing runtimes before and after parallelization.
+        </p>
+        <table class="responsive-table striped">
+            <thead>
+                <th>Gene</th>
+                <th>C3D file size (lines)</th>
+                <th>Series Runtime (mm:ss)</th>
+                <th>Locally Parallel Runtime (mm:ss)</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><em>GATA3</em></td>
+                    <td>5804</td>
+                    <td>03:01</td>
+                    <td>03:08</td>
+                </tr>
+                <tr>
+                    <td><em>FOXA1</em></td>
+                    <td>1754</td>
+                    <td>02:43</td>
+                    <td>03:04</td>
+                </tr>
+                <tr>
+                    <td><em>ESR1</em></td>
+                    <td>5415</td>
+                    <td>02:57</td>
+                    <td>04:06</td>
+                </tr>
+                <tr>
+                    <td><em>PGR (PR)</em></td>
+                    <td>417</td>
+                    <td>02:21</td>
+                    <td>02:35</td>
+                </tr>
+                <tr>
+                    <td><em>ERBB2 (HER2)</em></td>
+                    <td>7216</td>
+                    <td>03:47</td>
+                    <td>03:59</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA1</em></td>
+                    <td>9806</td>
+                    <td>04:08</td>
+                    <td>05:32</td>
+                </tr>
+                <tr>
+                    <td><em>BRCA2</em></td>
+                    <td>1213</td>
+                    <td>02:42</td>
+                    <td>02:23</td>
+                </tr>
+                <tr>
+                    <td><em>TP53</em></td>
+                    <td>16999</td>
+                    <td>05:47</td>
+                    <td>05:45</td>
+                </tr>
+            </tbody>
+        </table>
 
-                    <p>
-                        Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files. I'm guessing that this is just because the files are still relatively small. I think I will split large C3D files into smaller files that are at least 20K lines long, since there doesn't appear to be a significant difference before then. 
-                    </p>
+        <p>
+            Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files. I'm guessing that this is just because the files are still relatively small. I think I will split large C3D files into smaller files that are at least 20K lines long, since there doesn't appear to be a significant difference before then. 
+        </p>
 
-                    <div class="chip">2016-11-09</div>
-                    <p>
-                        I'm running my parallel version of MuSE on the entire dataset now: 7.6M lines from the C3D results, split into smaller files of ~10000 lines long, and split over 12 cores. If a single file takes ~5 min to run, this will be like running 65 files in series, so it should take around 5-6h, if this behaves exactly as I expect. Which is unlikely! 
-                    </p>
-                    <p>
-                        It actually finished in 04:42:49, I'm surprised. Everything looks correct, the directory is clean, and the output file looks good. I'm wondering what to do with the results though. I didn't sort the mutations file by BCa subtype (and I don't even know how to do that yet, since I don't see any info in the file about which subtype each mutation belongs to, but I might be able to look that up given the ICGC ID's and things), so I might have to re-run all my analysis. This was mostly a test to make sure everything worked as expected.
-                    </p>
-                </div>
-            </div>
-            <div class="col hide-on-small-only m3 l2">
-                <ul class="section table-of-contents pinned">
-                    <li><a href="#project">Project</a></li>
-                    <li><a href="#setup">Setup</a></li>
-                    <li><a href="#c3d-results">C3D Results</a></li>
-                    <li><a href="#c3d-recommendations">C3D Recommendations</a></li>
-                    <li><a href="#running-muse">Running MuSE</a></li>
-                    <li><a href="#muse-specific">MuSE on specific genes of interest</a></li>
-                    <li><a href="#muse-refactoring">Refactoring and Parallelizing MuSE</a></li>
-                </ul>
-            </div>
-        </div>
-    </article>
-    <footer>
-        <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-top"><i class="material-icons">keyboard_arrow_up</i></a>
-        <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-bottom"><i class="material-icons">keyboard_arrow_down</i></a>
-    </footer>
+        <div class="chip">2016-11-09</div>
+        <p>
+            I'm running my parallel version of MuSE on the entire dataset now: 7.6M lines from the C3D results, split into smaller files of ~10000 lines long, and split over 12 cores. If a single file takes ~5 min to run, this will be like running 65 files in series, so it should take around 5-6h, if this behaves exactly as I expect. Which is unlikely! 
+        </p>
+        <p>
+            It actually finished in 04:42:49, I'm surprised. Everything looks correct, the directory is clean, and the output file looks good. I'm wondering what to do with the results though. I didn't sort the mutations file by BCa subtype (and I don't even know how to do that yet, since I don't see any info in the file about which subtype each mutation belongs to, but I might be able to look that up given the ICGC ID's and things), so I might have to re-run all my analysis. This was mostly a test to make sure everything worked as expected.
+        </p>
+    </div>
+</div>
+<div class="col hide-on-small-only m3 l2">
+    <ul class="section table-of-contents pinned">
+        <li><a href="#project">Project</a></li>
+        <li><a href="#setup">Setup</a></li>
+        <li><a href="#c3d-results">C3D Results</a></li>
+        <li><a href="#c3d-recommendations">C3D Recommendations</a></li>
+        <li><a href="#running-muse">Running MuSE</a></li>
+        <li><a href="#muse-specific">MuSE on specific genes of interest</a></li>
+        <li><a href="#muse-refactoring">Refactoring and Parallelizing MuSE</a></li>
+    </ul>
+</div>
+</div>
+</article>
+<footer>
+    <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-top"><i class="material-icons">keyboard_arrow_up</i></a>
+    <a class="btn-floating waves-effect waves-light materialize-red hide-on-med-and-up cd-bottom"><i class="material-icons">keyboard_arrow_down</i></a>
+</footer>
 </body>
 
 </html>
