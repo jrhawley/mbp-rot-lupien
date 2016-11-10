@@ -131,9 +131,13 @@ sh c3d_wrapper.sh 79_BCa_samples.cfg
                     <p>
                         It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.
                     </p>
+
+                    <div class="chip">2016-10-25</div>
                     <p>
-                        Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow (2016-10-26).
+                        Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow.
                     </p>
+
+                    <div class="chip">2016-10-26</div>
                     <p>
                         This finally worked. I copied all the resulting files into <code>20161026_C3D</code>, and formatted the files for input to MuSE via (replace <code>$i</code> with each number):
                     </p>
@@ -145,7 +149,6 @@ cat results_*.formatted.txt >> results_all.txt
 
                 <div id="c3d-recommendations" class="section scrollspy">
                     <h4>C3D Recommendations</h4>
-                    <div class="chip">2016-10-26</div>
                     <p>
                         C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:
                     </p>
@@ -456,7 +459,6 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
                             <th>C3D file size (lines)</th>
                             <th>Series Runtime (mm:ss)</th>
                             <th>Locally Parallel Runtime (mm:ss)</th>
-                            <th>Task Array Runtime (mm:ss)</th>
                         </thead>
                         <tbody>
                             <tr>
@@ -464,62 +466,54 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
                                 <td>5804</td>
                                 <td>03:01</td>
                                 <td>03:08</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>FOXA1</em></td>
                                 <td>1754</td>
                                 <td>02:43</td>
                                 <td>03:04</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>ESR1</em></td>
                                 <td>5415</td>
                                 <td>02:57</td>
                                 <td>04:06</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>PGR (PR)</em></td>
                                 <td>417</td>
                                 <td>02:21</td>
                                 <td>02:35</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>ERBB2 (HER2)</em></td>
                                 <td>7216</td>
                                 <td>03:47</td>
                                 <td>03:59</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>BRCA1</em></td>
                                 <td>9806</td>
                                 <td>04:08</td>
                                 <td>05:32</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>BRCA2</em></td>
                                 <td>1213</td>
                                 <td>02:42</td>
                                 <td>02:23</td>
-                                <td>tbd</td>
                             </tr>
                             <tr>
                                 <td><em>TP53</em></td>
                                 <td>16999</td>
                                 <td>05:47</td>
                                 <td>05:45</td>
-                                <td>tbd</td>
                             </tr>
                         </tbody>
                     </table>
 
                     <p>
-                        Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files.
+                        Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files. I'm guessing that this is just because the files are still relatively small. I think I will split large C3D files into smaller files that are at least 20K lines long, since there doesn't appear to be a significant difference before then. 
                     </p>
 
                     <div class="chip">2016-11-09</div>
