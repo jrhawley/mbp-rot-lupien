@@ -489,7 +489,6 @@ sub parse_C3D {
                 $fn = $t;
             }
             $d += 1;     
-            print $mutout "\n---$fs\t$fn\t@ps\t@pn\n"; 
         }
 
         for (my $i = $fs; $i <= $fn; $i++) {
