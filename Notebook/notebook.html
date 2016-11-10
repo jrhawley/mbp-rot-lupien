@@ -526,6 +526,9 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
                     <p>
                         I'm running my parallel version of MuSE on the entire dataset now: 7.6M lines from the C3D results, split into smaller files of ~10000 lines long, and split over 12 cores. If a single file takes ~5 min to run, this will be like running 65 files in series, so it should take around 5-6h, if this behaves exactly as I expect. Which is unlikely! 
                     </p>
+                    <p>
+                        It actually finished in 04:42:49, I'm surprised. Everything looks correct, the directory is clean, and the output file looks good. I'm wondering what to do with the results though. I didn't sort the mutations file by BCa subtype (and I don't even know how to do that yet, since I don't see any info in the file about which subtype each mutation belongs to, but I might be able to look that up given the ICGC ID's and things), so I might have to re-run all my analysis. This was mostly a test to make sure everything worked as expected.
+                    </p>
                 </div>
             </div>
             <div class="col hide-on-small-only m3 l2">
