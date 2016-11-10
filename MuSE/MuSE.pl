@@ -27,6 +27,61 @@ my $max_processes    = 12;
 my $tmp_prefix       = "tmpmuse";       # prefix for temporary MuSE files
 my @tmp_filelist     = ();
 my $suffix_muse      = "MUSE6";
+my $header_line = join("\t",
+        "GENE",
+        "M_TYPE_1",
+        "M_TYPE_1_BMR",
+        "M_TYPE_1_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_1_N_MUT",
+        "M_TYPE_1_P",
+        "M_TYPE_1_P_LOCAL",
+        "M_TYPE_2",
+        "M_TYPE_2_BMR",
+        "M_TYPE_2_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_2_N_MUT",
+        "M_TYPE_2_P",
+        "M_TYPE_2_P_LOCAL",
+        "M_TYPE_3",
+        "M_TYPE_3_BMR",
+        "M_TYPE_3_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_3_N_MUT",
+        "M_TYPE_3_P",
+        "M_TYPE_3_P_LOCAL",
+        "M_TYPE_4",
+        "M_TYPE_4_BMR",
+        "M_TYPE_4_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_4_N_MUT",
+        "M_TYPE_4_P",
+        "M_TYPE_4_P_LOCAL",
+        "M_TYPE_5",
+        "M_TYPE_5_BMR",
+        "M_TYPE_5_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_5_N_MUT",
+        "M_TYPE_5_P",
+        "M_TYPE_5_P_LOCAL",
+        "M_TYPE_6",
+        "M_TYPE_6_BMR",
+        "M_TYPE_6_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_6_N_MUT",
+        "M_TYPE_6_P",
+        "M_TYPE_6_P_LOCAL",
+        "M_TYPE_7",
+        "M_TYPE_7_BMR",
+        "M_TYPE_7_BMR_LOCAL",
+        "SIME_LENGTH",
+        "M_TYPE_7_N_MUT",
+        "M_TYPE_7_P",
+        "M_TYPE_7_P_LOCAL",
+        "FISHER_P",
+        "FISHER_P_LOCAL",
+        "N_DHS"
+    );
 
 ### Subroutines ###############################################################
 # binomial
@@ -513,61 +568,6 @@ sub calculate {
     my %nid             = %$nid_ref;
     my $pm;
 
-    my $header_line = join("\t",
-        "GENE",
-        "M_TYPE_1",
-        "M_TYPE_1_BMR",
-        "M_TYPE_1_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_1_N_MUT",
-        "M_TYPE_1_P",
-        "M_TYPE_1_P_LOCAL",
-        "M_TYPE_2",
-        "M_TYPE_2_BMR",
-        "M_TYPE_2_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_2_N_MUT",
-        "M_TYPE_2_P",
-        "M_TYPE_2_P_LOCAL",
-        "M_TYPE_3",
-        "M_TYPE_3_BMR",
-        "M_TYPE_3_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_3_N_MUT",
-        "M_TYPE_3_P",
-        "M_TYPE_3_P_LOCAL",
-        "M_TYPE_4",
-        "M_TYPE_4_BMR",
-        "M_TYPE_4_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_4_N_MUT",
-        "M_TYPE_4_P",
-        "M_TYPE_4_P_LOCAL",
-        "M_TYPE_5",
-        "M_TYPE_5_BMR",
-        "M_TYPE_5_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_5_N_MUT",
-        "M_TYPE_5_P",
-        "M_TYPE_5_P_LOCAL",
-        "M_TYPE_6",
-        "M_TYPE_6_BMR",
-        "M_TYPE_6_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_6_N_MUT",
-        "M_TYPE_6_P",
-        "M_TYPE_6_P_LOCAL",
-        "M_TYPE_7",
-        "M_TYPE_7_BMR",
-        "M_TYPE_7_BMR_LOCAL",
-        "SIME_LENGTH",
-        "M_TYPE_7_N_MUT",
-        "M_TYPE_7_P",
-        "M_TYPE_7_P_LOCAL",
-        "FISHER_P",
-        "FISHER_P_LOCAL",
-        "N_DHS"
-    );
     open(my $output, ">", $output_filename) or die "Could not open $output_filename\n";
     print $output $header_line . "\n";
 
@@ -763,9 +763,11 @@ if (!$series) {
     print("Collecting output\n");
     my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
     open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
+    print $f_out $header_line . "\n";
     foreach my $f (@muse_filelist) {
         open(my $f_in, "<", $f) or die "Could not open $f\n";
-        while (my $readline = <$f_in>) {
+        my $readline = <$f_in>; # skip header line produced by "calculate" function
+        while ($readline = <$f_in>) {
             print $f_out $readline;
         }
         close($f_in);
