@@ -524,6 +524,14 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
             It actually finished in 04:42:49, I'm surprised. Everything looks correct, the directory is clean, and the output file looks good. I'm wondering what to do with the results though. I didn't sort the mutations file by BCa subtype (and I don't even know how to do that yet, since I don't see any info in the file about which subtype each mutation belongs to, but I might be able to look that up given the ICGC ID's and things), so I might have to re-run all my analysis. This was mostly a test to make sure everything worked as expected.
         </p>
     </div>
+
+    <div id="element-id" class="section scrollspy">
+        <h3>Element Identification</h3>
+        <div class="chip">2016-11-11</div>
+        <p>
+            Mathieu wanted to look at separating mutation rates based on element type (i.e. promoter, chromatin anchor, enhancer). An initial first pass he suggested was looking at only promoters and anchors. Promoters will be within 3kb of a gene's TSS (can find these in the gencode file), and anchors will match the CTCF binding motif. So I'm going to make a new Perl script, try and make some of these functions, and see how well my identification works, and how to integrate it into MuSE. I might run out of time for this though, since I only have one more week.
+        </p>
+    </div>
 </div>
 <div class="col hide-on-small-only m3 l2">
     <ul class="section table-of-contents pinned">
@@ -534,6 +542,7 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
         <li><a href="#running-muse">Running MuSE</a></li>
         <li><a href="#muse-specific">MuSE on specific genes of interest</a></li>
         <li><a href="#muse-refactoring">Refactoring and Parallelizing MuSE</a></li>
+        <li><a href="#element-id">Element Identification</a></li>
     </ul>
 </div>
 </div>
