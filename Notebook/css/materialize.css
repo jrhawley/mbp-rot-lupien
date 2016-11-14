@@ -6275,9 +6275,6 @@ form p:last-child {
   opacity: 0;
 }
 
-[type="checkbox"] {
-  /* checkbox aspect */
-}
 
 [type="checkbox"] + label {
   position: relative;
