@@ -532,7 +532,7 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
             Mathieu wanted to look at separating mutation rates based on element type (i.e. promoter, chromatin anchor, enhancer). An initial first pass he suggested was looking at only promoters and anchors. Promoters will be within 3kb of a gene's TSS (can find these in the gencode file), and anchors will match the CTCF binding motif. So I'm going to make a new Perl script, try and make some of these functions, and see how well my identification works, and how to integrate it into MuSE. I might run out of time for this though, since I only have one more week.
         </p>
 
-        <div class="chip">2016-11-11</div>
+        <div class="chip">2016-11-14</div>
         <p>
             This was actually pretty straightforward. In this repo I've created the ElementID Perl script to handle the process for identifying DNA elements. Currently it can test for chromatin loop anchors based on CTCF motifs, and promoters based on their proximity to TSSs from the gencode reference file.
         </p>        
