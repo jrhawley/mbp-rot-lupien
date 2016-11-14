@@ -1,13 +1,18 @@
 #!/usr/bin/perl
 
 ### Imports ###################################################################
+package ElementID;
 use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
 
 ### Global Variables ##########################################################
-my %options = ();
+my %options = (
+    "help" => 0,
+    "man"  => 0,
+    "bed"  => ""
+);
 
 my $gencode_file = "gencodev19.txt";
 
@@ -17,14 +22,14 @@ my $gencode_file = "gencodev19.txt";
 #   parse command line input arguments
 sub parse_args {
     GetOptions(
-        \%options,
-        'h|help',
-        'man'
+        'h|help' => \$options{"help"},
+        'man'    => \$options{"man"},
+        'b|bed=s'  => \$options{"bed"}
     ) or pod2usage(2);
-    if ($help) {
+    if ($options{"help"}) {
         pod2usage(1);
     }
-    elsif ($man) {
+    elsif ($options{"man"}) {
         pod2usage(-exitval => 0, -verbose => 2);
     }
 }
@@ -36,12 +41,10 @@ sub parse_args {
 #   chrom:              chromosome
 #   start:              region start site
 #   end:                region end site
-#   strand:             strand of testing region
 # Outputs:
 #   closest_chrom:      chromosome of closest TSS
 #   closest_start:      start site of closest TSS
 #   closest_end:        end site of closest TSS
-#   closest_strand:     strand of closest TSS
 #   distance:           distance between region of interest and closest TSS
 sub closest_TSS {
     my ($chrom, $start, $end) = @_;
@@ -51,16 +54,22 @@ sub closest_TSS {
     while ($readline = <$f_gencode>) {
         chomp($readline);
         my @splitline = split(/\t/, $readline);
-        my $test_chrom = $splitline[1];
-        my $test_start = $splitline[3];
-        my $test_end   = $splitline[4];
+        my ($test_name, $test_chrom, $test_strand, $test_start, $test_end, $test_name2) = 
+            @splitline;
 
+        # print($test_chrom, "\n");
         if ($chrom eq $test_chrom) {
+            # print("[$start, $end]\t[$test_start, $test_end]\n");
             my $test_dist = distance($start, $end, $test_start, $test_end);
-            if ($test_dist > $dist) {
-                $dist = $test_dist;
+            # print($test_dist, "\n");
+            if (!defined($dist) || $test_dist < $dist) {
+                $closest_chrom = $test_chrom;
+                $closest_start = $test_start;
+                $closest_end   = $test_end;
+                $dist          = $test_dist;
             }
         }
+        # sleep(1);
     }
     close($f_gencode);
 
@@ -88,7 +97,7 @@ sub distance {
         my $dist1 = abs($b_lower - $a_upper);
         my $dist2 = abs($a_lower - $b_upper);
         
-        if ($dist1 > $dist2) {
+        if ($dist1 < $dist2) {
             return($dist1);
         } else {
             return($dist2);
@@ -97,7 +106,21 @@ sub distance {
 }
 
 ### Main ######################################################################
-parse_args();
+unless (caller) {
+    parse_args();
+    open(my $f_in, "<", $options{"bed"}) or die "Could not open $options{'bed'}!\n";
+    while (my $readline = <$f_in>) {
+        chomp($readline);
+        if (grep(/^#/, $readline) || grep(/^chrom/, $readline)) {
+            next;
+        }
+
+        my @splitline = split(/\t/, $readline);
+        my ($chrom, $start, $end) = @splitline;
+        print(join("\t", closest_TSS($chrom, $start, $end)), "\n");
+    }
+    close($f_in);
+}
 
 __END__
 
