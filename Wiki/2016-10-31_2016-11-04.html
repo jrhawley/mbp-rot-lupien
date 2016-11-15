@@ -1,0 +1,119 @@
+==Oct 31 - Nov 4==
+===Errors running MuSE===
+====Divide by 0 errors====
+After running the above, I couldn't complete the calculations because of a divide by 0 error: <code>Illegal division by zero at MuSE-1.6.pl line 536</code>. Turns out I forgot to uncomment the section that runs calculations when reading the BED file, so it didn't properly create the parameters it was supposed to. I'm rerunning MuSE now with the section uncommented.
+
+====Intractible calculations====
+It looks like just running it blindly is not going to work, it'll take years to do this. So I need to refine this a bit. If I look for mutationally significant regions in the <em>ESR1</em> region, I should be able to see something like from the Nature paper.
+
+I filtered the somatic mutations file so that I'm looking at a region just around the <em>ESR1</em> gene (only ~2000 lines instead of 3.8M), so this should be much quicker. Hopefully this finishes by tomorrow morning. <strong>2016-11-03: Actually this was a mistake. I needed the entire mutations file to get the global and local BMRs. I needed to split up the C3D output instead. So the results of this run should be ignored.</strong>
+
+It did run successfully, and completed 1869 lines of mutations in 40 minutes. I've stopped the ones running all 3.8M mutations, because the files were just getting too big, and it would take too long, ''O''(weeks), for them to finish running.
+
+=== MuSE on specific genes of interest===
+I talked with Sven, and he said if I want I can start with genes that are known to mutate in cancer, but eventually we'll want to go genome-wide. So to do that I'm reformatting the MuSE script, as well as changing up run-MuSE.sh to use <code>SGE_TASK_ID</code>.
+
+I've run MuSE with the full somatic mutations file and 10 lines of the C3D output, to test how long it takes. It took ~3 min to run the 10 lines. So I'll need to figure out tomorrow how many files I should split <code>results_all.formatted.txt</code> into.
+
+Following Sven's advice, before I start working on parallelizing MuSE, I'm going to run it on a select list of genes. I'm using <code>/mnt/work1/users/lupiengroup/Paul/resources/gencodev19.txt</code> as a reference for gene regions, and I'll be taking those regions from the C3D output, to use as smaller output files for MuSE to read. While those are running, I'll work on making the calculations parallelized. My list of genes and regions is in the table below.
+
+{| class="wikitable"
+|+ Table 2: List of regions of interest being tested with MuSE
+|-
+! Gene
+! Chrom
+! Start
+! End
+|-
+| ''GATA3''
+| chr10
+| 8095566
+| 8116027
+|-
+| ''FOXA1''
+| chr14
+| 38059188
+| 38065264
+|- 
+| ''ESR1''
+| chr6
+| 151977825
+| 152305300
+|- 
+| ''PGR (PR)''
+| chr11
+| 100900354
+| 100922201
+|- 
+| ''ERBB2 (HER2)''
+| chr17
+| 37844166
+| 37886679
+|- 
+| ''BRCA1''
+| chr17
+| 41196311
+| 41277338
+|- 
+| ''BRCA2''
+| chr13
+| 32889610
+| 32972585
+|- 
+| ''TP53''
+| chr17
+| 7565096
+| 7590745
+|}
+
+Tahmid said to make sure that when I split the C3D output, don't cut off groups comparing the same region (i.e. if the first entry is <code>chr1:521469-521617</code>, make sure that entire block stays in the same file, don't split it up). I've written [[Media:Hawleyj_split-c3d.txt | split-c3d.pl]] to split up the C3D output and only look for regions relating to genes of interest. And using a modified [[Media:Hawleyj_run-MuSE.sh | run-Muse.sh]] file to automate the job submissions given the genes, I'm currently running MuSE on these key regions.
+
+Calculations completed overnight, here's a summary of the genes, their size, and the runtimes.
+
+{|  class="wikitable"
+|+ Table 3: Summary of runtimes of MuSE of small regions of interest
+! Gene
+! C3D file size (lines)
+! MuSE file size (lines)
+! Runtime (mm:ss)
+|- 
+| <em>GATA3</em>
+| 5804
+| 26
+| 05:20
+|- 
+| <em>FOXA1</em>
+| 1754
+| 14
+| 35:44
+|- 
+| <em>ESR1</em>
+| 5415
+| 32
+| 03:40
+|- 
+| <em>PGR (PR)</em>
+| 417
+| 7
+| 03:00
+|- 
+| <em>ERBB2 (HER2)</em>
+| 7216
+| 59
+| 05:45
+|- 
+| <em>BRCA1</em>
+| 9806
+| 69
+| 07:30
+|- 
+| <em>BRCA2</em>
+| 1213
+| 13
+| 03:47
+|- 
+| <em>TP53</em>
+| 16999
+| 111
+| 10:51
+|}
