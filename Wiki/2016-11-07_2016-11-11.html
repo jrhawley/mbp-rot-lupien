@@ -1,0 +1,76 @@
+==Nov 7 - Nov 11, 2016==
+===Refactoring and parallelizing MuSE===
+I've worked on refactoring and parallelizing MuSE to make use of the cluster. I've updated it in this repo. Below is a flowchart for how MuSE runs.
+
+[[File:Hawleyj_MuSE-parallel-flowchart.svg|thumb|Figure 1: Flowchart of refactored MuSE script]]
+
+Mordor doesn't have the <code>Schedule::SGE</code> module installed by default, so I installed it locally via:
+
+<pre>
+wget -O- http://cpanmin.us | perl - -l ~/perl5 App::cpanminus local::lib
+eval `perl -I ~/perl5/lib/perl5 -Mlocal::lib`
+echo 'export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB' >> ~/.bashrc
+echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
+</pre>
+
+For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
+
+<strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that change. I might come back to using task arrays in the future, but it's not too important right now.
+
+With the most recently updated version of MuSE, with local parallel calculations working, here's a table comparing runtimes before and after parallelization.
+
+{|  class="wikitable"
+! Gene
+! C3D file size (lines)
+! Series Runtime (mm:ss)
+! Locally Parallel Runtime (mm:ss)
+|- 
+| <em>GATA3</em>
+| 5804
+| 03:01
+| 03:08
+|- 
+| <em>FOXA1</em>
+| 1754
+| 02:43
+| 03:04
+|- 
+| <em>ESR1</em>
+| 5415
+| 02:57
+| 04:06
+|- 
+| <em>PGR (PR)</em>
+| 417
+| 02:21
+| 02:35
+|- 
+| <em>ERBB2 (HER2)</em>
+| 7216
+| 03:47
+| 03:59
+|- 
+| <em>BRCA1</em>
+| 9806
+| 04:08
+| 05:32
+|- 
+| <em>BRCA2</em>
+| 1213
+| 02:42
+| 02:23
+|- 
+| <em>TP53</em>
+| 16999
+| 05:47
+| 05:45
+|}
+
+Not exactly what I expected. I thought the times were going to be roughly the same for small files, and parallel was going to be better for larger files. I'm guessing that this is just because the files are still relatively small. I think I will split large C3D files into smaller files that are at least 20K lines long, since there doesn't appear to be a significant difference before then.
+
+I'm running my parallel version of MuSE on the entire dataset now: 7.6M lines from the C3D results, split into smaller files of ~10000 lines long, and split over 12 cores. If a single file takes ~5 min to run, this will be like running 65 files in series, so it should take around 5-6h, if this behaves exactly as I expect. Which is unlikely!
+
+It actually finished in 04:42:49, I'm surprised. Everything looks correct, the directory is clean, and the output file looks good. I'm wondering what to do with the results though. I didn't sort the mutations file by BCa subtype (and I don't even know how to do that yet, since I don't see any info in the file about which subtype each mutation belongs to, but I might be able to look that up given the ICGC ID's and things), so I might have to re-run all my analysis. This was mostly a test to make sure everything worked as expected.
+
+===Element identification===
+Mathieu wanted to look at separating mutation rates based on element type (i.e. promoter, chromatin anchor, enhancer). An initial first pass he suggested was looking at only promoters and anchors. Promoters will be within 3kb of a gene's TSS (can find these in the gencode file), and anchors will match the CTCF binding motif. So I'm going to make a new Perl script, try and make some of these functions, and see how well my identification works, and how to integrate it into MuSE. I might run out of time for this though, since I only have one more week.

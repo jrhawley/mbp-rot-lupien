@@ -1,0 +1,52 @@
+==Oct 17 - Oct 21, 2016==
+===Rotation Project Summary===
+<abbr title="Deoxyribonucleic acid">DNA</abbr> is more than just a series of nucleotides; it's a physical object with physical properties. DNA, along with other molecules and amino acids forms a structure called chromatin. This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.
+
+Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to  3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occurring in an SRE appear significantly more often than in different parts of the genome.
+
+Sven's paper used 98 <abbr title="Breast Cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.
+
+===Setup===
+Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong>The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>).
+
+{| class="wikitable"
+|+ Table 1: Locations of data files on the cluster
+|-
+! Item
+! Location
+|-
+| Original C3D
+| /mnt/work1/users/lupiengroup/TahmidProject/C3D/
+|- 
+| Original MuSE
+| /mnt/work1/users/lupiengroup/TahmidProject/MUSE/
+|- 
+| Original Somatic Mutations (Sanger)
+| /mnt/work1/users/pughlab/ICGC/BRCA-EU-UK_ICGC_May-2016/
+|- 
+| BCa DHS BigWigs
+| /mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeAnalysisHub_build37/UniformSignalsFor_DNase_FAIRE_Histone_TFBS/UniformSignals
+|- 
+| BCa DHS BedGraphs (converted from BigWig)
+| /mnt/work1/users/lupiengroup/TahmidProject/UW_DHS_BG/
+|- 
+| Genes List for Promoters
+| /mnt/work1/users/lupiengroup/TahmidProject/genes.list
+|- 
+| MCF-7 Cell Lines
+| /mnt/work1/data/commondata/ENCODE/data_ENCODE_ucsc/hg19_encodeProductionData_build37/Chromatin_Accessibility/UW_DNaseI_HS
+|}
+
+I made <code>promoter_anchors.bed</code> from running the <code>make_anchors_from_genes.sh</code> script:
+
+<pre>
+sh make_anchors_from_genes.sh genes.list 2500 500 promoter_anchors.bed
+sort -k1,1 -k2,2n promoter_anchors.bed > promoter_anchors.sorted.bed                # sorted
+bedtools merge -i promoter_anchors.sorted.bed > promoter_anchors.merged.sorted.bed  # merge to reduce features
+</pre>
+
+Then, after setting up the configuration file [[Media:Hawleyj_79_BCa_samples.cfg | 79_BCa_samples.cfg]], I ran C3D:
+
+<pre>
+sh c3d_wrapper.sh 79_BCa_samples.cfg
+</pre>

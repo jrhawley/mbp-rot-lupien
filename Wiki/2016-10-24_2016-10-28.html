@@ -1,0 +1,94 @@
+==Oct 24 - Oct 28, 2016==
+===C3D Results===
+Its initial run completed and produced <abbr title="Browser Extensible Data">BED</abbr> files and <code>signalMatrix.txt</code>. Tahmid said that this allows for faster runs after the first pass. It failed though, running <code>c3d.R</code> becuase it couldn't find <code>JASPAR_IDs.txt</code>, which the R script assumes is in the same directory. I'm rerunning C3D via <code>sh c3d_wrapper.sh 79_BCa_samples_rec.cfg</code> to properly reference the JASPAR file.
+
+====Mistakes were made====
+Even if C3D hadn't crashed at the Rscript, it would've taken weeks to run, because I accidentally used the unmerged/unsorted anchor file. That has been corrected in the config files.
+
+I also ended up corrupting the output files when trying to rerun. I still have the original signalMatrix.txt and most of the reference BEDs, but I think a few of them were overwritten.
+
+To fix these mistakes, I've made 8 different folders, each containing a portion of the merged/sorted anchor file. It's a poor man's parallelization implementation, but given the current state of C3D I think it's appropriate. Parallelizing it would require an entire rewrite of the code with lots of abstraction. I think it's necessary, just not for me and not right now.
+
+====Rerunning scripts====
+It took 6.5h to map the BED files, and about 3h for the Rscript to parse 1000 anchors. Given that I'm restarting the mapping on all 8 sets, and each set contains 8236 anchors, it should take around 30h to complete. That translates to finishing at 22:00 on 2016-10-25.
+
+Turns out I forgot to modify the config files for sections 3-7. So those failed entering the Rscript. In order to avoid potentially corrupting the data again, I made copies of the directories, fixed the config files, then ran the scripts again. So they should finish sometime tomorrow (2016-10-26).
+
+This finally worked. I copied all the resulting files into <code>20161026_C3D</code>, and formatted the files for input to MuSE via (replace <code>$i</code> with each number):
+
+<pre>
+cat results_$i.txt | awk -v OFS='\t' '{if (NR!=1) {print $1, $4, $7, $7, $8}}' > results_$i.formatted.txt
+cat results_*.formatted.txt >> results_all.txt
+</pre>
+
+===C3D Recommendations===
+C3D is a script in its early stages. It requires a lot of code cleanup, and could do with adhering to some standard practices. Here are some things to do in the future to make the script better:
+# No config file
+#* Making config files and running scripts can get messy, since it requires writing to a config file every time you want to run the script
+#* Using command line args is likely a better way to implement this, especially for making a pipeline
+# Using getopt/standard argparsing
+#* Will make it easier to parse arguments without the need for a config file
+#* Lessen chance of making mistakes when running
+# Rewrite in Python or Perl
+#* Bash is useful, but not as readable or supported for many of these things
+#* MuSE already uses perl, so it would be easier to make this an entire library
+#* Calculations, command line, and parallelization are easily supported in these languages
+#* This would likely take some time to do, unfortunately
+# Parallelization
+#* These scripts take a long time to run
+#* Using perl or python packages to parallelize computations will significantly speed up processing time
+# Check files and folders before executing
+#* Nothing sucks more than having your script run for a few hours just to have it crash because you forgot to check that a directory or file existed
+# Comments
+#* Please put comments all over the place in the code
+#* Takes a lot of time to understand what's going on without them
+#* "You will spend much more time looking at and reviewing your code than you will writing it"
+
+===Running MuSE===
+Looking at the <code>simple_somatic_mutation.open.BRCA-EU.tsv.gz</code> file Sven pointed me towards, I'm using that, plus the C3D results from before to look at significant regions. I need to format the TSV for MuSE to read it properly. To do that, I ran:
+
+<pre>
+# collect the appropriate columns, prepend "chr" to chromosome column, remove headers
+zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";} {$9 = "chr" $9; if (NR != 1) {print $9, $10, $11, $7, $16, $17}}' > simple_somatic_mutation.open.BRCA-EU.bed
+# sort BED file
+sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
+</pre>
+
+I then ran MuSE as follows:
+
+<pre>
+qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
+</pre>
+
+To filter out duplicate mutations, sort with the unique option:
+
+<pre>
+sort -u -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed
+qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.unique.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
+</pre>
+
+I'm getting a lot of errors running this. I'm still getting output, but I don't know what these errors entail, so I want to track them down before I do a complete run again, since they took a few hours (3 for the non-unique, and 4.5 for the unique mutation files). I'm getting errors like:
+
+<pre>
+Argument "237723-237851" isn't numeric in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
+Use of uninitialized value in subtraction (-) at MuSE-1.6.pl line 339, <$inputIFC> line 1.
+Argument "521469-521617" isn't numeric in subtraction (-) at MuSE-1.6.pl line 341, <$inputIFC> line 1.
+Use of uninitialized value in addition (+) at MuSE-1.6.pl line 342, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric lt (<) at MuSE-1.6.pl line 404, <$inputIFC> line 1.
+Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 414, <$inputIFC> line 1.
+Use of uninitialized value in numeric gt (>) at MuSE-1.6.pl line 430, <$inputIFC> line 1.
+Use of uninitialized value in numeric le (<=) at MuSE-1.6.pl line 439, <$inputIFC> line 1.
+</pre>
+
+I think it has to do with improper line splitting. Perl doesn't have rigid types, so writing expressions doesn't usually cause a problem until you don't correctly format your inputs. I'll investigate that now.
+
+I was right. The string was only being split by <code>:</code> instead of both <code>:</code> and <code>-</code>, on lines 335 and 336 of MuSE 1.6. I've corrected this in the latest version.
