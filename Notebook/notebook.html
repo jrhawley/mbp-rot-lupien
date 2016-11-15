@@ -33,7 +33,7 @@
             This physical structure means that DNA translation is not just affected by the DNA sequences, or the DNA sequences nearby. There can be regulatory elements of DNA far off, that come into close proximity of a gene of interest just dependent on how the chromatin coils.
         </p>
         <p>
-            Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to  3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occuring in an SRE appear significantly more often than in different parts of the genome.
+            Sven has recently published a paper on using this idea in order to find an <abbr title="Set of Regulatory Elements">SRE</abbr> for a particular gene of interest. He used two main tools to do this, <abbr title="Cross-Cell-type Correlation in DNase hypersensitivity signals">C3D</abbr>, and <abbr title="mutational significance within the regulatory element set">MuSE</abbr>. C3D finds correlations between <abbr title="DNase Hypersensitive Sites">DHS</abbr> within a certain window of a gene of interest. This helps give some context as to  3D strucuture of the chromatin is, as the hypothesis is that this SRE will contain regions of chromatin in close physical proximity to the gene. MuSE looks at the <abbr title="Background Mutation Rate">BMR</abbr> both globally and locally, and attempts to determine whether mutations occurring in an SRE appear significantly more often than in different parts of the genome.
         </p>
         <p>
             Sven's paper used 98 <abbr title="Breast Cancer">BCa</abbr> samples, and I'm going to try and replicate this analysis on a ~560 sample BCa dataset from <abbr title="International Cancer Genome Consortium">ICGC</abbr>.
@@ -44,7 +44,7 @@
         <h4>Setup</h4>
         <div class="chip">2016-10-17</div>
         <p>
-            Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/hawleyj</code>).
+            Tahmid (a co-op student from Waterloo), showed me the layout of the project, pointed me towards the scripts, and where the data is located. <strong class="danger">The lab doesn't use version control (!!!!) </strong> so the scripts are just located in directories on Mordor. I've copied important items into this repo. (Note: <code>$LHOME=/mnt/work1/users/lupiengroup/People/hawleyj</code>).
         </p>
         <table class="responsive-table striped">
             <thead>
@@ -174,8 +174,7 @@ cat results_*.formatted.txt >> results_all.txt
             <ol>
                 <li>These scripts take a long time to run</li>
                 <li>Using perl or python packages to parallelize computations will significantly speed up processing
-                    time
-                </li>
+                    time</li>
             </ol>
             <li>Check files and folders before executing</li>
             <ol>
@@ -204,7 +203,7 @@ zcat simple_somatic_mutation.open.BRCA-EU.tsv.gz | awk -F "\t" 'BEGIN{OFS="\t";}
 sort -k1,1 -k2,2n simple_somatic_mutation.open.BRCA-EU.bed > simple_somatic_mutation.open.BRCA-EU.sorted.bed
         </code></pre>
         <p>
-            I've then run MuSE as follows:
+            I then ran MuSE as follows:
         </p>
         <pre><code>
 qsub run-MuSE.sh /mnt/work1/users/lupiengroup/hawleyj/Data/simple_somatic_mutation.open.BRCA-EU.sorted.bed results_all.formatted.txt /mnt/work1/users/lupiengroup/hawleyj/Data/wgEncodeUwDnaseMcf7HotspotsRep1.broadPeak 500000 0.7
@@ -445,7 +444,7 @@ echo 'export MANPATH=$HOME/perl5/man:$MANPATH' >> ~/.bashrc
             For whatever reason, I, personally, have had issues with Mordor not loading my environment correctly. So in the run-MuSE.sh script, I need to add <code>export PERL5LIB=$HOME/perl5/lib/perl5:$PERL5LIB</code>. Mordor doesn't reload my bashrc when a job starts up.
         </p>
         <p>
-            <strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that chage. I might come back to using task arrays in the future, but it's not too important right now.
+            <strong>2016-11-09:</strong> Using Schedule::SGE with custom commands, like <code>-q</code> and <code>-t</code>, was surprisingly difficult. There wasn't an easy way to run with these options, that I found, so I restructured MuSE for only locally parallel computation. The figure above reflects that change. I might come back to using task arrays in the future, but it's not too important right now.
         </p>
 
         <br>
