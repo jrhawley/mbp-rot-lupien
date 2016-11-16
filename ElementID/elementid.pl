@@ -170,39 +170,32 @@ sub is_anchor {
 }
 
 ### Main ######################################################################
-unless (caller) {
-    parse_args();
+parse_args();
 
-    if ($options{"inline"}) {
-        my ($chrom, $start, $end) = split(/,/, $options{"inline"});
+if ($options{"inline"}) {
+    my @region_list = split(/:/, $options{"inline"});
+    foreach my $region (@region_list) {
+        my ($chrom, $start, $end) = split(/,/, $region);
         my $is_prom = is_promoter($chrom, $start, $end);
         my $is_anch = is_anchor($chrom, $start, $end);  
-        if ($is_prom || $is_anch) {
-            print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
-        } else {
-            print(join("\t", $chrom, $start, $end, "other"), "\n");
-        }
-    } else {
-        open(my $f_in, "<", $options{"bed"}) or die "Could not open $options{'bed'}!\n";
-        while (my $readline = <$f_in>) {
-            chomp($readline);
-            # skip header line if it exists
-            if (grep(/^#/, $readline) || grep(/^chrom/, $readline)) {
-                next;
-            }
-
-            my @splitline = split(/\t/, $readline);
-            my ($chrom, $start, $end) = @splitline;
-            my $is_prom = is_promoter($chrom, $start, $end);
-            my $is_anch = is_anchor($chrom, $start, $end);  
-            if ($is_prom || $is_anch) {
-                print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
-            } else {
-                print(join("\t", $chrom, $start, $end, "other"), "\n");
-            }
-        }
-        close($f_in);
+        print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
     }
+} else {
+    open(my $f_in, "<", $options{"bed"}) or die "Could not open $options{'bed'}!\n";
+    while (my $readline = <$f_in>) {
+        chomp($readline);
+        # skip header line if it exists
+        if (grep(/^#/, $readline) || grep(/^chrom/, $readline)) {
+            next;
+        }
+
+        my @splitline = split(/\t/, $readline);
+        my ($chrom, $start, $end) = @splitline;
+        my $is_prom = is_promoter($chrom, $start, $end);
+        my $is_anch = is_anchor($chrom, $start, $end);  
+        print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
+    }
+    close($f_in);
 }
 
 __END__
@@ -215,10 +208,11 @@ elementid: Description
 
 perl elementid.pl -b <BED file>
 
-perl elementid.pl -i <chrom>,<start>,<end>
+perl elementid.pl -i <chrom>,<start>,<end>[:<chrom>,<start>,<end>...]
 
 Options:
     -h, --help          Brief help message
     --man               Man page with full documentation
     -b, --bed           BED file containing regions to check
-    -i, --inline        Check region from commandline. Chromosome, start, and end should be comma-separated
+    -i, --inline        Check region from commandline. Chromosome, start, and end should be comma-separated.
+                        Multiple regions should be colon-separated.
