@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 ### Imports ###################################################################
+package MuSE::MuSE;
 use strict;
 use warnings;
 use Statistics::R;
@@ -693,45 +694,94 @@ sub split_c3d {
 
 
 ### Main ######################################################################
-parse_args();
-print("Runtime parameters:\n\t");
-print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
+unless (caller) {
+    parse_args();
+    print("Runtime parameters:\n\t");
+    print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
 
-# Parse mutations file
-print("Reading mutation file\n");
-my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
-print("....Done\n");
-
-# Parse reference BED file
-print("Reading BED file\n");
-my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
-print("....Done\n");
-
-# Run in parallel (default)
-if (!$series) {
-    my $pm = Parallel::ForkManager->new($max_processes);
-    my @muse_filelist = ();
-
-    # need to run this so that temp files are properly pushed into arrays (this is just a function of how P:FM works)
-    $pm->run_on_finish(sub {
-        my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $result_ref) = @_;
-        push(@muse_filelist, $$result_ref);
-        push(@tmp_filelist, $$result_ref);
-    });
-
-    # Split C3D file into parts
-    print("Splitting C3D file\n");
-    my ($file_count, $file_list_ref) = split_c3d($inputC3Dfile);
+    # Parse mutations file
+    print("Reading mutation file\n");
+    my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
     print("....Done\n");
 
-    print("Parallel C3D reading and calculating\n");
-    foreach my $f (@$file_list_ref) {
-        my $pid = $pm->start() and next;
+    # Parse reference BED file
+    print("Reading BED file\n");
+    my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
+    print("....Done\n");
 
+    # Run in parallel (default)
+    if (!$series) {
+        my $pm = Parallel::ForkManager->new($max_processes);
+        my @muse_filelist = ();
+
+        # need to run this so that temp files are properly pushed into arrays (this is just a function of how P:FM works)
+        $pm->run_on_finish(sub {
+            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $result_ref) = @_;
+            push(@muse_filelist, $$result_ref);
+            push(@tmp_filelist, $$result_ref);
+        });
+
+        # Split C3D file into parts
+        print("Splitting C3D file\n");
+        my ($file_count, $file_list_ref) = split_c3d($inputC3Dfile);
+        print("....Done\n");
+
+        print("Parallel C3D reading and calculating\n");
+        foreach my $f (@$file_list_ref) {
+            my $pid = $pm->start() and next;
+
+            # Parse C3D file
+            my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+                parse_C3D(
+                    $f,
+                    $chroms_ref,
+                    $starts_ref,
+                    $mutations_ref,
+                    $window,
+                    $thres
+                );
+
+            # Run binomial hypothesis test calculations
+            my $output_file = join(".", $f, $window, $thres, $suffix_muse);
+            calculate(
+                $output_file,
+                $wgdist,
+                $wgbmr_ref,
+                $SiMES_ref,
+                $nbmr_ref,
+                $cbmr_ref,
+                $nmut_ref,
+                $cmut_ref,
+                $nid_ref
+            );
+
+            $pm->finish(0, \$output_file);
+        }
+        $pm->wait_all_children();
+        print("....Done\n");
+
+        # Collect output into one file, after processing has finished
+        print("Collecting output\n");
+        my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+        open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
+        print $f_out $header_line . "\n";
+        foreach my $f (@muse_filelist) {
+            open(my $f_in, "<", $f) or die "Could not open $f\n";
+            my $readline = <$f_in>; # skip header line produced by "calculate" function
+            while ($readline = <$f_in>) {
+                print $f_out $readline;
+            }
+            close($f_in);
+        }
+        close($f_out);
+        print("....Done\n");
+
+    # Run in series
+    } else {
         # Parse C3D file
         my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
             parse_C3D(
-                $f,
+                $inputC3Dfile,
                 $chroms_ref,
                 $starts_ref,
                 $mutations_ref,
@@ -740,7 +790,7 @@ if (!$series) {
             );
 
         # Run binomial hypothesis test calculations
-        my $output_file = join(".", $f, $window, $thres, $suffix_muse);
+        my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
         calculate(
             $output_file,
             $wgdist,
@@ -752,60 +802,14 @@ if (!$series) {
             $cmut_ref,
             $nid_ref
         );
-
-        $pm->finish(0, \$output_file);
     }
-    $pm->wait_all_children();
+
+    # Cleanup temporary files
+    print("Cleaning up\n");
+    remove_tree(@tmp_filelist);
     print("....Done\n");
-
-    # Collect output into one file, after processing has finished
-    print("Collecting output\n");
-    my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-    open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
-    print $f_out $header_line . "\n";
-    foreach my $f (@muse_filelist) {
-        open(my $f_in, "<", $f) or die "Could not open $f\n";
-        my $readline = <$f_in>; # skip header line produced by "calculate" function
-        while ($readline = <$f_in>) {
-            print $f_out $readline;
-        }
-        close($f_in);
-    }
-    close($f_out);
-    print("....Done\n");
-
-# Run in series
-} else {
-    # Parse C3D file
-    my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
-        parse_C3D(
-            $inputC3Dfile,
-            $chroms_ref,
-            $starts_ref,
-            $mutations_ref,
-            $window,
-            $thres
-        );
-
-    # Run binomial hypothesis test calculations
-    my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
-    calculate(
-        $output_file,
-        $wgdist,
-        $wgbmr_ref,
-        $SiMES_ref,
-        $nbmr_ref,
-        $cbmr_ref,
-        $nmut_ref,
-        $cmut_ref,
-        $nid_ref
-    );
 }
 
-# Cleanup temporary files
-print("Cleaning up\n");
-remove_tree(@tmp_filelist);
-print("....Done\n");
 
 __END__
 
@@ -815,7 +819,7 @@ MuSE: calculating significantly mutated regions
 
 =head1 SYNOPSIS
 
-perl MuSE.pl -m <mutations BED> -c <C3D output file> -b <DHS reference BED> -w <window> -t <threshold>
+perl MuSE.pm -m <mutations BED> -c <C3D output file> -b <DHS reference BED> -w <window> -t <threshold>
 
 Options:
     -h, --help              Brief help message

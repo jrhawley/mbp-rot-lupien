@@ -1,11 +1,13 @@
 #!/usr/bin/perl
 
 ### Imports ###################################################################
-package ElementID;
+package MuSE::ElementID;
 use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
+use base 'Exporter';
+
 
 ### Global Variables ##########################################################
 my %options = (
@@ -17,7 +19,7 @@ my %options = (
 
 my $gencode_file     = "gencodev19.txt";
 my $ctcf_file        = "ctcf_motifs.bed";
-my $promoter_kb_dist = 3000;
+my $promoter_bp_dist = 3000;
 
 ### Subroutines ###############################################################
 # parse_args
@@ -131,7 +133,7 @@ sub is_promoter {
         closest_TSS($chrom, $start, $end);
 
     # if regions are detected within the window of being a promoter
-    if ($tss_dist <= $promoter_kb_dist) {
+    if ($tss_dist <= $promoter_bp_dist) {
         return(1);
     }
     return(0);
@@ -170,32 +172,34 @@ sub is_anchor {
 }
 
 ### Main ######################################################################
-parse_args();
+unless (caller) {
+    parse_args();
 
-if ($options{"inline"}) {
-    my @region_list = split(/:/, $options{"inline"});
-    foreach my $region (@region_list) {
-        my ($chrom, $start, $end) = split(/,/, $region);
-        my $is_prom = is_promoter($chrom, $start, $end);
-        my $is_anch = is_anchor($chrom, $start, $end);  
-        print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
-    }
-} else {
-    open(my $f_in, "<", $options{"bed"}) or die "Could not open $options{'bed'}!\n";
-    while (my $readline = <$f_in>) {
-        chomp($readline);
-        # skip header line if it exists
-        if (grep(/^#/, $readline) || grep(/^chrom/, $readline)) {
-            next;
+    if ($options{"inline"}) {
+        my @region_list = split(/:/, $options{"inline"});
+        foreach my $region (@region_list) {
+            my ($chrom, $start, $end) = split(/,/, $region);
+            my $is_prom = is_promoter($chrom, $start, $end);
+            my $is_anch = is_anchor($chrom, $start, $end);  
+            print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
         }
+    } else {
+        open(my $f_in, "<", $options{"bed"}) or die "Could not open $options{'bed'}!\n";
+        while (my $readline = <$f_in>) {
+            chomp($readline);
+            # skip header line if it exists
+            if (grep(/^#/, $readline) || grep(/^chrom/, $readline)) {
+                next;
+            }
 
-        my @splitline = split(/\t/, $readline);
-        my ($chrom, $start, $end) = @splitline;
-        my $is_prom = is_promoter($chrom, $start, $end);
-        my $is_anch = is_anchor($chrom, $start, $end);  
-        print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
+            my @splitline = split(/\t/, $readline);
+            my ($chrom, $start, $end) = @splitline;
+            my $is_prom = is_promoter($chrom, $start, $end);
+            my $is_anch = is_anchor($chrom, $start, $end);  
+            print(join("\t", $chrom, $start, $end, $is_prom, $is_anch), "\n");
+        }
+        close($f_in);
     }
-    close($f_in);
 }
 
 __END__
@@ -206,9 +210,9 @@ elementid: Description
 
 =head1 SYNOPSIS
 
-perl elementid.pl -b <BED file>
+perl ElementID.pm -b <BED file>
 
-perl elementid.pl -i <chrom>,<start>,<end>[:<chrom>,<start>,<end>...]
+perl ElementID.pm -i <chrom>,<start>,<end>[:<chrom>,<start>,<end>...]
 
 Options:
     -h, --help          Brief help message
