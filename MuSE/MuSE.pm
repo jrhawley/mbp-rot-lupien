@@ -9,25 +9,29 @@ use Getopt::Long;
 use Pod::Usage;
 use File::Path qw(make_path remove_tree);
 use Parallel::ForkManager;
+use Cwd;
 
 
 ### Global Variables ##########################################################
 # Runtime options
-my $man              = 0;
-my $help             = 0;
-my $inputMUTfile     = "";
-my $inputC3Dfile     = "";
-my $inputBEDfile     = "";
-my $window           = 0;               # Window size '-w' must be equal or smaller than the C3D window size used
-my $thres            = 0;
-my $output_directory = "";
-my $series           = 0;               # local calculations in series
+my %options = (
+    "Help"             => 0,
+    "Manual"           => 0,
+    "Mutations File"   => "",
+    "C3D File"         => "",
+    "DHS File"         => "",
+    "Window"           => 0,    # Window size '-w' must be equal or smaller than the C3D window size used
+    "Threshold"        => 0,
+    "Output Directory" => getcwd(),
+    "Parallel"         => 1
+);
 
-my $max_lines_split  = 10000;           # number of lines for a single C3D split block
+my $max_lines_split  = 10000;       # number of lines for a single C3D split block
 my $max_processes    = 12;
-my $tmp_prefix       = "tmpmuse";       # prefix for temporary MuSE files
+my $prefix_muse      = "tmpmuse";   # prefix for temporary MuSE files
+my $suffix_muse      = "MUSE";
+
 my @tmp_filelist     = ();
-my $suffix_muse      = "MUSE6";
 my $header_line = join("\t",
         "GENE",
         "M_TYPE_1",
@@ -187,42 +191,44 @@ sub assign_type {
 #   parse command line input arguments
 sub parse_args {
     GetOptions(
-        'm|mutations=s'    => \$inputMUTfile,
-        'c|c3d=s'          => \$inputC3Dfile,
-        'b|bed=s'          => \$inputBEDfile,
-        'w|window=i'       => \$window,
-        't|threshold=f'    => \$thres,
-        'help|h'           => \$help,
-        'man'              => \$man,
-        'o|output:s'       => \$output_directory,
-        'l|series|linear'  => \$series
+        \%options,
+        'help|h'           => \$options{"Help"},
+        'man'              => \$options{"Manual"},
+        'm|mutations=s'    => \$options{"Mutations File"},
+        'c|c3d=s'          => \$options{"C3D File"},
+        'd|dhs=s'          => \$options{"DHS File"},
+        'w|window=i'       => \$options{"Window"},
+        't|threshold=f'    => \$options{"Threshold"},
+        'o|output:s'       => \$options{"Output Directory"},
+        'parallel!'        => \$options{"Parallel"}
     ) or pod2usage(2);
-    if ($help) {
+
+    if ($options{"Help"}) {
         pod2usage(1);
     }
-    elsif ($man) {
+    elsif ($options{"Manual"}) {
         pod2usage(-exitval => 0, -verbose => 2);
     }
     pod2usage({ -message => q{Mandatory argument '-m' is missing},
                  -exitval => 1,
                  -verbose => 1
-    }) unless $inputMUTfile;
+    }) unless $options{"Mutations File"};
     pod2usage({ -message => q{Mandatory argument '-c' is missing},
                  -exitval => 1,
                  -verbose => 1
-    }) unless $inputC3Dfile;
+    }) unless $options{"C3D File"};
     pod2usage({ -message => q{Mandatory argument '-b' is missing},
                  -exitval => 1,
                  -verbose => 1
-    }) unless $inputBEDfile;
+    }) unless $options{"DHS File"};
     pod2usage({ -message => q{Mandatory argument '-w' is missing},
                  -exitval => 1,
                  -verbose => 1
-    }) unless $window;
+    }) unless $options{"Window"};
     pod2usage({ -message => q{Mandatory argument '-t' is missing},
                  -exitval => 1,
                  -verbose => 1
-    }) unless $thres;
+    }) unless $options{"Threshold"};
 }
 
 # parse_mutations
@@ -404,8 +410,8 @@ sub parse_C3D {
     my %cmut  = ();
     my %nid   = ();
 
-    my $suffix_mut  = "MUT6";
-    my $mutout_file = join(".", $inputC3Dfile, $window, $thres, $suffix_mut); ###############
+    my $suffix_mut  = "MUT";
+    my $mutout_file = join(".", $c3d_file, $window, $threshold, $suffix_mut);
 
     open(my $inputC3D, "<", $c3d_file) or die "Could not open $c3d_file!\n";
     open(my $mutout, ">", $mutout_file) or die "Could not open $mutout_file\n";
@@ -498,7 +504,7 @@ sub parse_C3D {
 
             if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
                 if ($mut[1] >= $dist[1] && $mut[1] <= $dist[2]) {
-                    if ($line[2] >= $thres) {
+                    if ($line[2] >= $threshold) {
                         my %lnid = map { $_ => 1 } @{$nid{$gene}};
                         if (!exists $lnid{$mut[3]}) {   
                             print $mutout "@dist\t$line[2]\t$gene\t@mut\tTEST\n";
@@ -520,7 +526,7 @@ sub parse_C3D {
         }
 
         if ($dist[1] >= $window_bounds[0] && $dist[2] <= $window_bounds[1]) {
-            if ($line[2] >= $thres) {
+            if ($line[2] >= $threshold) {
                 $SiMES{$gene} += 1;
                 $cmut{$gene}  += $coverage;
             } else {
@@ -653,7 +659,7 @@ sub calculate {
 sub split_c3d {
     my $c3d_file = shift;
     my $file_count = 1;
-    my $out_filename = join("_", $tmp_prefix, $c3d_file, $file_count);
+    my $out_filename = join("_", $prefix_muse, $c3d_file, $file_count);
     my $out_current_region = "";
     my $out_filelength = 0;
     my @file_list = ();
@@ -673,7 +679,7 @@ sub split_c3d {
             push(@tmp_filelist, $out_filename);
 
             $file_count        += 1;
-            $out_filename       = join("_", $tmp_prefix, $c3d_file, $file_count);
+            $out_filename       = join("_", $prefix_muse, $c3d_file, $file_count);
             $out_current_region = $splitline[0];
             $out_filelength     = 0;
             open($f_out, ">", $out_filename) or die "Could not open $out_filename";
@@ -696,21 +702,23 @@ sub split_c3d {
 ### Main ######################################################################
 unless (caller) {
     parse_args();
-    print("Runtime parameters:\n\t");
-    print(join("\n\t", $inputMUTfile, $inputC3Dfile, $inputBEDfile, $window, $thres)."\n");
+    print("Runtime parameters:\n");
+    foreach my $opt_key (sort(keys(%options))) {
+        print("\t$opt_key:\t$options{$opt_key}\n");
+    }
 
     # Parse mutations file
     print("Reading mutation file\n");
-    my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($inputMUTfile);
+    my ($mutations_ref, $starts_ref, $chroms_ref) = parse_mutations($options{"Mutations File"});
     print("....Done\n");
 
     # Parse reference BED file
     print("Reading BED file\n");
-    my ($wgdist, $wgbmr_ref) = parse_reference($inputBEDfile, $chroms_ref, $starts_ref, $mutations_ref);
+    my ($wgdist, $wgbmr_ref) = parse_reference($options{"DHS File"}, $chroms_ref, $starts_ref, $mutations_ref);
     print("....Done\n");
 
     # Run in parallel (default)
-    if (!$series) {
+    if ($options{"Parallel"}) {
         my $pm = Parallel::ForkManager->new($max_processes);
         my @muse_filelist = ();
 
@@ -723,7 +731,7 @@ unless (caller) {
 
         # Split C3D file into parts
         print("Splitting C3D file\n");
-        my ($file_count, $file_list_ref) = split_c3d($inputC3Dfile);
+        my ($file_count, $file_list_ref) = split_c3d($options{"C3D File"});
         print("....Done\n");
 
         print("Parallel C3D reading and calculating\n");
@@ -737,12 +745,12 @@ unless (caller) {
                     $chroms_ref,
                     $starts_ref,
                     $mutations_ref,
-                    $window,
-                    $thres
+                    $options{"Window"},
+                    $options{"Threshold"}
                 );
 
             # Run binomial hypothesis test calculations
-            my $output_file = join(".", $f, $window, $thres, $suffix_muse);
+            my $output_file = join(".", $f, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
             calculate(
                 $output_file,
                 $wgdist,
@@ -762,7 +770,7 @@ unless (caller) {
 
         # Collect output into one file, after processing has finished
         print("Collecting output\n");
-        my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+        my $output_file = join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
         open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
         print $f_out $header_line . "\n";
         foreach my $f (@muse_filelist) {
@@ -781,16 +789,16 @@ unless (caller) {
         # Parse C3D file
         my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
             parse_C3D(
-                $inputC3Dfile,
+                $options{"C3D File"},
                 $chroms_ref,
                 $starts_ref,
                 $mutations_ref,
-                $window,
-                $thres
+                $options{"Window"},
+                $options{"Threshold"}
             );
 
         # Run binomial hypothesis test calculations
-        my $output_file = join(".", $inputC3Dfile, $window, $thres, $suffix_muse);
+        my $output_file = join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
         calculate(
             $output_file,
             $wgdist,
@@ -819,10 +827,11 @@ MuSE: calculating significantly mutated regions
 
 =head1 SYNOPSIS
 
-perl MuSE.pm -m <mutations BED> -c <C3D output file> -b <DHS reference BED> -w <window> -t <threshold>
+perl MuSE.pm -m <mutations BED> -c <C3D output file> -d <DHS file> -w <window> -t <threshold>
 
 Options:
+
     -h, --help              Brief help message
     --man                   Man page with full documentation
     -o, --output            Directory path for output files
-    -l, --linear, --series  Perform local calculations in series (parallel by default)
+    --no-parallel           Perform local calculations in series (parallel by default)
