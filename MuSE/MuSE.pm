@@ -8,6 +8,7 @@ use Statistics::R;
 use Getopt::Long;
 use Pod::Usage;
 use File::Path qw(make_path remove_tree);
+use File::Basename;
 use Parallel::ForkManager;
 use Cwd;
 
@@ -229,6 +230,10 @@ sub parse_args {
                  -exitval => 1,
                  -verbose => 1
     }) unless $options{"Threshold"};
+
+    if (!(-e $options{"Output Directory"} && -d $options{"Output Directory"})) {
+        make_path($options{"Output Directory"});
+    }
 }
 
 # parse_mutations
@@ -411,10 +416,16 @@ sub parse_C3D {
     my %nid   = ();
 
     my $suffix_mut  = "MUT";
-    my $mutout_file = join(".", $c3d_file, $window, $threshold, $suffix_mut);
+    my $mutout_file = $options{"Output Directory"} . "/" . join(
+        ".",
+        basename($c3d_file),
+        $window,
+        $threshold,
+        $suffix_mut
+    );
 
     open(my $inputC3D, "<", $c3d_file) or die "Could not open $c3d_file!\n";
-    open(my $mutout, ">", $mutout_file) or die "Could not open $mutout_file\n";
+    open(my $mutout, ">", $mutout_file) or die "Could not open $mutout_file!\n";
     #_EXPLANATION_
     while (<$inputC3D>) {
         chomp();
@@ -659,13 +670,13 @@ sub calculate {
 sub split_c3d {
     my $c3d_file = shift;
     my $file_count = 1;
-    my $out_filename = join("_", $prefix_muse, $c3d_file, $file_count);
+    my $out_filename = $options{"Output Directory"} . "/" . join("_", $prefix_muse, $c3d_file, $file_count);
     my $out_current_region = "";
     my $out_filelength = 0;
     my @file_list = ();
 
     open(my $f_in, "<", $c3d_file) or die "Could not open $c3d_file!\n";
-    open(my $f_out, ">", $out_filename) or die "Could not open $out_filename";
+    open(my $f_out, ">", $out_filename) or die "Could not open $out_filename\n";
     while (<$f_in>) {
         my $readline = $_;
         my @splitline = split(/\t/);
@@ -679,7 +690,7 @@ sub split_c3d {
             push(@tmp_filelist, $out_filename);
 
             $file_count        += 1;
-            $out_filename       = join("_", $prefix_muse, $c3d_file, $file_count);
+            $out_filename       = $options{"Output Directory"} . "/" . join("_", $prefix_muse, $c3d_file, $file_count);
             $out_current_region = $splitline[0];
             $out_filelength     = 0;
             open($f_out, ">", $out_filename) or die "Could not open $out_filename";
@@ -750,7 +761,13 @@ unless (caller) {
                 );
 
             # Run binomial hypothesis test calculations
-            my $output_file = join(".", $f, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
+            my $output_file = $options{"Output Directory"} . "/" . join(
+                ".",
+                basename($f),
+                $options{"Window"},
+                $options{"Threshold"},
+                $suffix_muse
+            );
             calculate(
                 $output_file,
                 $wgdist,
@@ -770,7 +787,7 @@ unless (caller) {
 
         # Collect output into one file, after processing has finished
         print("Collecting output\n");
-        my $output_file = join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
+        my $output_file = $options{"Output Directory"} . "/" . join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
         open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
         print $f_out $header_line . "\n";
         foreach my $f (@muse_filelist) {
@@ -798,7 +815,13 @@ unless (caller) {
             );
 
         # Run binomial hypothesis test calculations
-        my $output_file = join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
+        my $output_file = $options{"Output Directory"} . "/" . join(
+            ".",
+            $options{"C3D File"},
+            $options{"Window"},
+            $options{"Threshold"},
+            $suffix_muse
+        );
         calculate(
             $output_file,
             $wgdist,
