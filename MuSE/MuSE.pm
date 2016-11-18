@@ -884,7 +884,15 @@ MuSE: calculating significantly mutated regions
 
 =head1 SYNOPSIS
 
-perl MuSE.pm -m <mutations BED> -c <C3D output file> -d <DHS file> -w <window> -t <threshold>
+perl MuSE.pm -m <mutations BED> -c <C3D output file> -d <DHS file> -w <window> -t <threshold> [options]
+
+Required Parameters:
+
+    -m,--mutations          BED detail file containing mutations information
+    -c,--c3d                Output file from C3D, defining sets of regulatory elements
+    -d,-dhs                 DNase Hypersensitivity Sites BED file
+    -w,--window             Window (in bp) to define "local" vs "global" mutations. Window must be <= window size used to generate the C3D file (Default: 500kb)
+    -t,--threshold          Minimum correlation threshold value (Default: 0.7)
 
 Options:
 
