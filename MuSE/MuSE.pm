@@ -31,6 +31,7 @@ my $max_lines_split  = 10000;       # number of lines for a single C3D split blo
 my $max_processes    = 12;
 my $prefix_muse      = "tmpmuse";   # prefix for temporary MuSE files
 my $suffix_muse      = "MUSE";
+my $suffix_mut  = "MUT";
 
 my @tmp_filelist     = ();
 my $header_line = join("\t",
@@ -397,6 +398,7 @@ sub parse_reference {
 #   cbmr:               BMR coverage
 #   nmut:               # of mutations within test regions
 #   nid:                test region coverage
+#   mutout_file:        output mutation file being written to
 sub parse_C3D {
     my $c3d_file      = shift;
     my $chroms_ref    = shift;
@@ -415,7 +417,6 @@ sub parse_C3D {
     my %cmut  = ();
     my %nid   = ();
 
-    my $suffix_mut  = "MUT";
     my $mutout_file = $options{"Output Directory"} . "/" . join(
         ".",
         basename($c3d_file),
@@ -548,7 +549,7 @@ sub parse_C3D {
     close($inputC3D);
     close($mutout);
 
-    return(\%SiMES, \%nbmr, \%cbmr, \%nmut, \%cmut, \%nid);
+    return(\%SiMES, \%nbmr, \%cbmr, \%nmut, \%cmut, \%nid, $mutout_file);
 }
 
 # calculate
@@ -670,7 +671,7 @@ sub calculate {
 sub split_c3d {
     my $c3d_file = shift;
     my $file_count = 1;
-    my $out_filename = $options{"Output Directory"} . "/" . join("_", $prefix_muse, $c3d_file, $file_count);
+    my $out_filename = $options{"Output Directory"} . "/" . join("_", $prefix_muse, basename($c3d_file), $file_count);
     my $out_current_region = "";
     my $out_filelength = 0;
     my @file_list = ();
@@ -690,7 +691,7 @@ sub split_c3d {
             push(@tmp_filelist, $out_filename);
 
             $file_count        += 1;
-            $out_filename       = $options{"Output Directory"} . "/" . join("_", $prefix_muse, $c3d_file, $file_count);
+            $out_filename       = $options{"Output Directory"} . "/" . join("_", $prefix_muse, basename($c3d_file), $file_count);
             $out_current_region = $splitline[0];
             $out_filelength     = 0;
             open($f_out, ">", $out_filename) or die "Could not open $out_filename";
@@ -732,12 +733,15 @@ unless (caller) {
     if ($options{"Parallel"}) {
         my $pm = Parallel::ForkManager->new($max_processes);
         my @muse_filelist = ();
+        my @mut_filelist  = ();
 
         # need to run this so that temp files are properly pushed into arrays (this is just a function of how P:FM works)
         $pm->run_on_finish(sub {
-            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $result_ref) = @_;
-            push(@muse_filelist, $$result_ref);
-            push(@tmp_filelist, $$result_ref);
+            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $pm_filelist_ref) = @_;
+            push(@muse_filelist, $pm_filelist_ref->[0]);
+            push(@tmp_filelist, $pm_filelist_ref->[0]);
+            push(@mut_filelist, $pm_filelist_ref->[1]);
+            push(@tmp_filelist, $pm_filelist_ref->[1]);
         });
 
         # Split C3D file into parts
@@ -750,7 +754,7 @@ unless (caller) {
             my $pid = $pm->start() and next;
 
             # Parse C3D file
-            my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+            my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref, $mut_file) = 
                 parse_C3D(
                     $f,
                     $chroms_ref,
@@ -761,7 +765,7 @@ unless (caller) {
                 );
 
             # Run binomial hypothesis test calculations
-            my $output_file = $options{"Output Directory"} . "/" . join(
+            my $muse_file = $options{"Output Directory"} . "/" . join(
                 ".",
                 basename($f),
                 $options{"Window"},
@@ -769,7 +773,7 @@ unless (caller) {
                 $suffix_muse
             );
             calculate(
-                $output_file,
+                $muse_file,
                 $wgdist,
                 $wgbmr_ref,
                 $SiMES_ref,
@@ -780,31 +784,61 @@ unless (caller) {
                 $nid_ref
             );
 
-            $pm->finish(0, \$output_file);
+            my @pm_filelist = ($muse_file, $mut_file);
+            $pm->finish(0, \@pm_filelist);
         }
         $pm->wait_all_children();
         print("....Done\n");
 
-        # Collect output into one file, after processing has finished
-        print("Collecting output\n");
-        my $output_file = $options{"Output Directory"} . "/" . join(".", $options{"C3D File"}, $options{"Window"}, $options{"Threshold"}, $suffix_muse);
-        open(my $f_out, ">", $output_file) or die "Could not open $output_file\n";
-        print $f_out $header_line . "\n";
+
+        # Cleanup temporary files, collect into single files
+        print("Cleaning up\n");
+        my $muse_file = $options{"Output Directory"} . "/" . join(
+            ".",
+            basename($options{"C3D File"}),
+            $options{"Window"},
+            $options{"Threshold"},
+            $suffix_muse
+        );
+        my $mut_file = $options{"Output Directory"} . "/" . join(
+            ".",
+            basename($options{"C3D File"}),
+            $options{"Window"},
+            $options{"Threshold"},
+            $suffix_mut
+        );
+
+        # Collect MUSE files
+        open(my $f_museout, ">", $muse_file) or die "Could not open $muse_file\n";
+        print $f_museout $header_line . "\n";
         foreach my $f (@muse_filelist) {
-            open(my $f_in, "<", $f) or die "Could not open $f\n";
-            my $readline = <$f_in>; # skip header line produced by "calculate" function
-            while ($readline = <$f_in>) {
-                print $f_out $readline;
+            open(my $f_musein, "<", $f) or die "Could not open $f\n";
+            my $readline = <$f_musein>; # skip header line produced by "calculate" function
+            while ($readline = <$f_musein>) {
+                print $f_museout $readline;
             }
-            close($f_in);
+            close($f_musein);
         }
-        close($f_out);
+        close($f_museout);
+
+        # Collect MUT files
+        open(my $f_mutout, ">", $mut_file) or die "Could not open $mut_file\n";
+        foreach my $f (@mut_filelist) {
+            open(my $f_mutin, "<", $f) or die "Could not open $f\n";
+            while (my $readline = <$f_mutin>) {
+                print $f_mutout $readline;
+            }
+            close($f_mutin);
+        }
+        close($f_mutout);
+        
+        remove_tree(@tmp_filelist);
         print("....Done\n");
 
     # Run in series
     } else {
         # Parse C3D file
-        my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref) = 
+        my ($SiMES_ref, $nbmr_ref, $cbmr_ref, $nmut_ref, $cmut_ref, $nid_ref, $mut_file) = 
             parse_C3D(
                 $options{"C3D File"},
                 $chroms_ref,
@@ -817,7 +851,7 @@ unless (caller) {
         # Run binomial hypothesis test calculations
         my $output_file = $options{"Output Directory"} . "/" . join(
             ".",
-            $options{"C3D File"},
+            basename($options{"C3D File"}),
             $options{"Window"},
             $options{"Threshold"},
             $suffix_muse
@@ -833,12 +867,12 @@ unless (caller) {
             $cmut_ref,
             $nid_ref
         );
-    }
 
-    # Cleanup temporary files
-    print("Cleaning up\n");
-    remove_tree(@tmp_filelist);
-    print("....Done\n");
+        # Cleanup temporary files
+        print("Cleaning up\n");
+        remove_tree(@tmp_filelist);
+        print("....Done\n");
+    }
 }
 
 
